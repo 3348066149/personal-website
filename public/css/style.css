@@ -47,6 +47,11 @@
   align-items: center;
   justify-content: center;
   transition: opacity 0.9s cubic-bezier(0.65, 0, 0.35, 1), visibility 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+  animation: removeLoader 0s 3.5s forwards;
+}
+
+@keyframes removeLoader {
+  to { display: none; }
 }
 
 .page-loader.hidden {

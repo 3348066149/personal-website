@@ -10,7 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
   if (loader) {
     setTimeout(function() {
       loader.classList.add('hidden');
-    }, 2300);
+    }, 2500);
+    // Fallback: force hide after timeout
+    setTimeout(function() {
+      if (!loader.classList.contains('hidden')) loader.classList.add('hidden');
+    }, 4000);
   }
 
   // Dark mode
