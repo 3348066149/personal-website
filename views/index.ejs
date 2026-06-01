@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= config.hero_title || 'Personal Website' %></title>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <!-- Page Loader -->
+  <div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+      <div class="loader-ring-outer"></div>
+      <div class="loader-avatar">
+        <img src="<%= config.avatar_url || '/images/avatar.jpg' %>" alt=""
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%233b82f6%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22 font-family=%22sans-serif%22>P</text></svg>'">
+      </div>
+      <div class="loader-ring-inner"></div>
+      <div class="loader-text">Loading</div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-container">
+      <a href="/" class="nav-logo"><%= config.hero_title || 'Portfolio' %></a>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="/" class="nav-link active">首页</a></li>
+        <li><a href="#projects" class="nav-link">项目</a></li>
+        <li><a href="#contact" class="nav-link">联系</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" title="切换主题">
+          <i class="fas fa-moon"></i>
+        </button>
+        <div class="nav-toggle" id="navToggle">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-particle" style="top:10%;left:10%;animation-delay:0s"></div>
+      <div class="hero-particle" style="top:70%;left:80%;animation-delay:1s;width:300px;height:300px"></div>
+      <div class="hero-particle" style="top:40%;left:60%;animation-delay:2s;width:200px;height:200px"></div>
+    </div>
+    <div class="container hero-content" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
+      <div class="hero-avatar">
+        <div class="hero-avatar-ring"></div>
+        <img src="<%= config.avatar_url || '/images/avatar.jpg' %>" alt="Avatar" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%233b82f6%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22 font-family=%22sans-serif%22>P</text></svg>'">
+      </div>
+      <h1 class="hero-title"><%= config.hero_title || 'Hello' %></h1>
+      <p class="hero-subtitle"><%= config.hero_subtitle || '' %></p>
+      <div class="hero-social">
+        <% if (config.github_url) { %>
+          <a href="<%= config.github_url %>" target="_blank" class="social-link"><i class="fab fa-github"></i></a>
+        <% } %>
+        <% if (config.linkedin_url) { %>
+          <a href="<%= config.linkedin_url %>" target="_blank" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+        <% } %>
+        <% if (config.email) { %>
+          <a href="mailto:<%= config.email %>" class="social-link"><i class="fas fa-envelope"></i></a>
+        <% } %>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="container stats-grid">
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="0">
+        <span class="stat-number" data-count="<%= projects.filter(p => p.category === 'ai').length %>">0</span>
+        <span class="stat-label">AI 项目</span>
+      </div>
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
+        <span class="stat-number" data-count="<%= projects.filter(p => p.category === 'unity').length %>">0</span>
+        <span class="stat-label">Unity 项目</span>
+      </div>
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
+        <span class="stat-number" data-count="<%= projects.filter(p => p.category === 'comprehensive').length %>">0</span>
+        <span class="stat-label">综合项目</span>
+      </div>
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
+        <span class="stat-number" data-count="<%= projects.length %>">0</span>
+        <span class="stat-label">总项目</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Projects -->
+  <% if (featuredProjects.length > 0) { %>
+  <section class="featured">
+    <div class="container">
+      <div class="section-header" data-aos="fade-up">
+        <h2 class="section-title">精选项目</h2>
+        <p class="section-desc">最值得关注的作品</p>
+      </div>
+      <div class="featured-carousel-wrapper">
+        <button class="featured-prev" id="featuredPrev" aria-label="上一页"><i class="fas fa-chevron-left"></i></button>
+        <div class="featured-carousel-container">
+          <div class="featured-carousel" id="featuredCarousel">
+          <% featuredProjects.forEach(function(project, index) { %>
+            <div class="featured-card" onclick='openProjectModal(this.dataset.project)' data-project='<%- JSON.stringify(project).replace(/'/g, "&#39;") %>'>
+              <div class="featured-card-bg" style="background: linear-gradient(135deg,
+                <%= project.category === 'ai' ? '#3b82f6, #1d4ed8' : project.category === 'unity' ? '#8b5cf6, #6d28d9' : '#10b981, #047857' %>)">
+                <span class="featured-icon">
+                  <i class="fas <%= project.category === 'ai' ? 'fa-brain' : project.category === 'unity' ? 'fa-gamepad' : 'fa-cubes' %>"></i>
+                </span>
+              </div>
+              <h4><%= project.title %></h4>
+              <p><%= project.description.length > 80 ? project.description.substring(0, 80) + '...' : project.description %></p>
+            </div>
+          <% }) %>
+          </div>
+        </div>
+        <button class="featured-next" id="featuredNext" aria-label="下一页"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div class="featured-dots" id="featuredDots"></div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- Projects Section -->
+  <section class="projects" id="projects">
+    <div class="container">
+      <div class="section-header" data-aos="fade-up">
+        <h2 class="section-title">我的项目</h2>
+        <p class="section-desc">探索我在 AI、Unity 和综合开发领域的作品</p>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-tabs" data-aos="fade-up" data-aos-delay="100">
+        <button class="filter-btn active" data-category="all">全部</button>
+        <button class="filter-btn" data-category="ai">AI 项目</button>
+        <button class="filter-btn" data-category="unity">Unity 项目</button>
+        <button class="filter-btn" data-category="comprehensive">综合项目</button>
+      </div>
+
+      <!-- Projects Grid -->
+      <div class="projects-grid" id="projectsGrid">
+        <% var sortedProjects = projects.sort((a,b) => (a.sort_order||999) - (b.sort_order||999)); %>
+        <% sortedProjects.forEach(function(project) { %>
+          <div class="project-card" data-category="<%= project.category %>" data-aos="fade-up" data-aos-delay="<%= (project.sort_order||1) * 50 %>">
+            <div class="project-card-image">
+              <img src="<%= project.cover_image || '/images/placeholder-' + project.category + '.jpg' %>" alt="<%= project.title %>"
+                   onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 250%22><rect fill=%22%23<%= project.category === 'ai' ? '3b82f6' : project.category === 'unity' ? '8b5cf6' : '10b981' %>22 width=%22400%22 height=%22250%22/><text x=%22200%22 y=%22125%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22 font-family=%22sans-serif%22><%= project.title %></text></svg>'">
+              <div class="project-card-overlay">
+                <span class="category-badge category-<%= project.category %>">
+                  <%= project.category === 'ai' ? 'AI' : project.category === 'unity' ? 'Unity' : '综合' %>
+                </span>
+              </div>
+            </div>
+            <div class="project-card-body">
+              <h3 class="project-card-title"><%= project.title %></h3>
+              <p class="project-card-desc"><%= project.description.length > 120 ? project.description.substring(0, 120) + '...' : project.description %></p>
+              <% if (project.tech_stack) { %>
+                <div class="project-card-tags">
+                  <% project.tech_stack.split(',').slice(0, 3).forEach(function(tag) { %>
+                    <span class="tag"><%= tag.trim() %></span>
+                  <% }) %>
+                  <% if (project.tech_stack.split(',').length > 3) { %>
+                    <span class="tag tag-plus">+<%= project.tech_stack.split(',').length - 3 %></span>
+                  <% } %>
+                </div>
+              <% } %>
+              <div class="project-card-footer">
+                <span class="project-date"><i class="far fa-calendar-alt"></i> <%= project.completion_date %></span>
+                <button class="btn-details" onclick='openProjectModal(this.dataset.project)' data-project='<%- JSON.stringify(project).replace(/'/g, "&#39;") %>'>
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="section-header" data-aos="fade-up">
+        <h2 class="section-title">联系我</h2>
+        <p class="section-desc">有任何问题或合作意向，欢迎联系</p>
+      </div>
+      <div class="contact-content" data-aos="fade-up" data-aos-delay="100">
+        <p class="contact-email">
+          <i class="fas fa-envelope-open-text"></i>
+          <a href="mailto:<%= config.email || '' %>"><%= config.email || '' %></a>
+        </p>
+        <div class="contact-social">
+          <% if (config.github_url) { %>
+            <a href="<%= config.github_url %>" target="_blank" class="social-link large"><i class="fab fa-github"></i></a>
+          <% } %>
+          <% if (config.linkedin_url) { %>
+            <a href="<%= config.linkedin_url %>" target="_blank" class="social-link large"><i class="fab fa-linkedin-in"></i></a>
+          <% } %>
+          <% if (config.email) { %>
+            <a href="mailto:<%= config.email %>" class="social-link large"><i class="fas fa-envelope"></i></a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; <%= new Date().getFullYear() %> <%= config.hero_title || 'Portfolio' %>. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Project Modal -->
+  <div class="modal" id="projectModal">
+    <div class="modal-backdrop" onclick="closeProjectModal()"></div>
+    <div class="modal-content" id="modalContent">
+      <button class="modal-close" onclick="closeProjectModal()"><i class="fas fa-times"></i></button>
+      <div class="modal-header" id="modalHeader">
+        <img id="modalCover" src="" alt="">
+        <div class="modal-header-overlay">
+          <span class="category-badge" id="modalCategory">AI</span>
+          <h2 id="modalTitle"></h2>
+        </div>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description" id="modalDescription"></p>
+        <div class="modal-meta">
+          <div class="meta-item">
+            <i class="fas fa-calendar"></i>
+            <span id="modalDate"></span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-code-branch"></i>
+            <span id="modalTech"></span>
+          </div>
+        </div>
+        <div class="modal-actions" id="modalActions">
+          <a id="modalDemoLink" href="#" target="_blank" class="btn btn-primary"><i class="fas fa-external-link-alt"></i> 演示</a>
+          <a id="modalCodeLink" href="#" target="_blank" class="btn btn-outline"><i class="fab fa-github"></i> 源码</a>
+          <a id="modalDownloadLink" href="#" class="btn btn-outline"><i class="fas fa-download"></i> 下载</a>
+          <a id="modalVideoLink" href="#" target="_blank" class="btn btn-outline"><i class="fas fa-video"></i> 视频</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

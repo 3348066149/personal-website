@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目管理 - 管理后台</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <h2><i class="fas fa-cog"></i> 管理后台</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/admin/projects" class="active"><i class="fas fa-folder"></i> 项目管理</a>
+        <a href="/admin/config"><i class="fas fa-sliders-h"></i> 网站配置</a>
+        <a href="/admin/change-password"><i class="fas fa-key"></i> 修改密码</a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">
+          <img src="<%= config.avatar_url || '/images/avatar.jpg' %>" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">admin</div>
+          <div class="sidebar-user-role">管理员</div>
+        </div>
+        <a href="/admin/logout" class="sidebar-logout-btn" title="退出登录"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-folder"></i> 项目管理</h1>
+        <button class="btn btn-primary" onclick="document.getElementById('addModal').classList.add('active')">
+          <i class="fas fa-plus"></i> 添加项目
+        </button>
+      </div>
+
+      <% if (locals.message) { %>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= message %></div>
+      <% } %>
+
+      <div class="admin-filter-tabs">
+        <a href="/admin/projects" class="filter-btn <%= currentCategory === 'all' ? 'active' : '' %>">全部</a>
+        <a href="/admin/projects?category=ai" class="filter-btn <%= currentCategory === 'ai' ? 'active' : '' %>">AI 项目</a>
+        <a href="/admin/projects?category=unity" class="filter-btn <%= currentCategory === 'unity' ? 'active' : '' %>">Unity 项目</a>
+        <a href="/admin/projects?category=comprehensive" class="filter-btn <%= currentCategory === 'comprehensive' ? 'active' : '' %>">综合项目</a>
+      </div>
+
+      <div class="table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>标题</th>
+              <th>分类</th>
+              <th>技术栈</th>
+              <th>排序</th>
+              <th>精选</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% projects.forEach(function(p) { %>
+            <tr>
+              <td><%= p.id %></td>
+              <td><%= p.title %></td>
+              <td><span class="badge badge-<%= p.category %>"><%= {ai:'AI',unity:'Unity',comprehensive:'综合'}[p.category] || p.category %></span></td>
+              <td><%= p.tech_stack ? p.tech_stack.substring(0, 30) : '' %></td>
+              <td><%= p.sort_order %></td>
+              <td>
+                <label class="toggle-featured">
+                  <input type="checkbox" <%= p.is_featured === 'yes' ? 'checked' : '' %> onchange="toggleFeatured(<%= p.id %>, this)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </td>
+              <td class="action-cell">
+                <button class="btn-sm btn-edit" onclick='editProject(<%= JSON.stringify(p) %>)'><i class="fas fa-edit"></i></button>
+                <form method="POST" action="/admin/projects/delete/<%= p.id %>" style="display:inline" onsubmit="return confirm('确定删除？')">
+                  <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Modal -->
+  <div class="modal" id="addModal">
+    <div class="modal-backdrop" onclick="this.parentElement.classList.remove('active')"></div>
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>添加项目</h2>
+        <button class="modal-close" onclick="document.getElementById('addModal').classList.remove('active')">&times;</button>
+      </div>
+      <form method="POST" action="/admin/projects/add" enctype="multipart/form-data">
+        <div class="form-row">
+          <div class="form-group">
+            <label>项目标题 *</label>
+            <input type="text" name="title" required>
+          </div>
+          <div class="form-group">
+            <label>分类 *</label>
+            <select name="category" required>
+              <option value="ai">AI 项目</option>
+              <option value="unity">Unity 项目</option>
+              <option value="comprehensive">综合项目</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>详细描述</label>
+          <textarea name="description" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>技术栈（逗号分隔）</label>
+          <input type="text" name="tech_stack" placeholder="如: Unity, C#, Python">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>源码类型</label>
+            <select name="source_type" id="addSourceType">
+              <option value="url">外部链接</option>
+              <option value="local">本地上传</option>
+              <option value="both">两者都提供</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>封面图片</label>
+            <input type="file" name="cover_image_file" accept="image/*">
+          </div>
+        </div>
+        <div id="addUrlFields" class="form-group">
+          <label>源码链接</label>
+          <input type="url" name="source_url" placeholder="https://github.com/...">
+        </div>
+        <div id="addLocalFields" class="form-group" style="display:none">
+          <label>本地文件上传</label>
+          <input type="file" name="local_file">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>演示链接</label>
+            <input type="url" name="demo_link">
+          </div>
+          <div class="form-group">
+            <label>GitHub 链接</label>
+            <input type="url" name="code_link">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>视频链接</label>
+            <input type="url" name="video_link">
+          </div>
+          <div class="form-group">
+            <label>完成日期</label>
+            <input type="date" name="completion_date">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>排序序号</label>
+            <input type="number" name="sort_order" value="<%= projects.length + 1 %>">
+          </div>
+          <div class="form-group">
+            <label><input type="checkbox" name="is_featured" value="yes"> 精选项目</label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> 保存</button>
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('addModal').classList.remove('active')">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-backdrop" onclick="this.parentElement.classList.remove('active')"></div>
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>编辑项目</h2>
+        <button class="modal-close" onclick="document.getElementById('editModal').classList.remove('active')">&times;</button>
+      </div>
+      <form method="POST" action="" id="editForm" enctype="multipart/form-data">
+        <div class="form-row">
+          <div class="form-group">
+            <label>项目标题 *</label>
+            <input type="text" name="title" id="editTitle" required>
+          </div>
+          <div class="form-group">
+            <label>分类 *</label>
+            <select name="category" id="editCategory" required>
+              <option value="ai">AI 项目</option>
+              <option value="unity">Unity 项目</option>
+              <option value="comprehensive">综合项目</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>详细描述</label>
+          <textarea name="description" id="editDescription" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>技术栈（逗号分隔）</label>
+          <input type="text" name="tech_stack" id="editTechStack">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>源码类型</label>
+            <select name="source_type" id="editSourceType">
+              <option value="url">外部链接</option>
+              <option value="local">本地上传</option>
+              <option value="both">两者都提供</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>封面图片（留空不修改）</label>
+            <input type="file" name="cover_image_file" accept="image/*">
+          </div>
+        </div>
+        <div id="editUrlFields" class="form-group">
+          <label>源码链接</label>
+          <input type="url" name="source_url" id="editSourceUrl">
+        </div>
+        <div id="editLocalFields" class="form-group" style="display:none">
+          <label>本地文件上传（留空不修改）</label>
+          <input type="file" name="local_file">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>演示链接</label>
+            <input type="url" name="demo_link" id="editDemoLink">
+          </div>
+          <div class="form-group">
+            <label>GitHub 链接</label>
+            <input type="url" name="code_link" id="editCodeLink">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>视频链接</label>
+            <input type="url" name="video_link" id="editVideoLink">
+          </div>
+          <div class="form-group">
+            <label>完成日期</label>
+            <input type="date" name="completion_date" id="editDate">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>排序序号</label>
+            <input type="number" name="sort_order" id="editSortOrder">
+          </div>
+          <div class="form-group">
+            <label><input type="checkbox" name="is_featured" value="yes" id="editFeatured"> 精选项目</label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> 更新</button>
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('editModal').classList.remove('active')">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Source type toggle for Add
+    document.getElementById('addSourceType').addEventListener('change', function() {
+      const val = this.value;
+      document.getElementById('addUrlFields').style.display = (val === 'url' || val === 'both') ? 'block' : 'none';
+      document.getElementById('addLocalFields').style.display = (val === 'local' || val === 'both') ? 'block' : 'none';
+    });
+
+    // Source type toggle for Edit
+    document.getElementById('editSourceType').addEventListener('change', function() {
+      const val = this.value;
+      document.getElementById('editUrlFields').style.display = (val === 'url' || val === 'both') ? 'block' : 'none';
+      document.getElementById('editLocalFields').style.display = (val === 'local' || val === 'both') ? 'block' : 'none';
+    });
+
+    function editProject(project) {
+      document.getElementById('editForm').action = '/admin/projects/edit/' + project.id;
+      document.getElementById('editTitle').value = project.title || '';
+      document.getElementById('editCategory').value = project.category || 'ai';
+      document.getElementById('editDescription').value = project.description || '';
+      document.getElementById('editTechStack').value = project.tech_stack || '';
+      document.getElementById('editSourceType').value = project.source_type || 'url';
+      document.getElementById('editSourceUrl').value = project.source_url || '';
+      document.getElementById('editDemoLink').value = project.demo_link || '';
+      document.getElementById('editCodeLink').value = project.code_link || '';
+      document.getElementById('editVideoLink').value = project.video_link || '';
+      document.getElementById('editDate').value = project.completion_date || '';
+      document.getElementById('editSortOrder').value = project.sort_order || 0;
+      document.getElementById('editFeatured').checked = project.is_featured === 'yes';
+
+      // Update source type visibility
+      const st = project.source_type || 'url';
+      document.getElementById('editUrlFields').style.display = (st === 'url' || st === 'both') ? 'block' : 'none';
+      document.getElementById('editLocalFields').style.display = (st === 'local' || st === 'both') ? 'block' : 'none';
+
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    function toggleFeatured(id, checkbox) {
+      fetch('/admin/projects/toggle-featured/' + id, { method: 'POST' })
+        .then(r => r.json())
+        .then(d => { if (!d.success) checkbox.checked = !checkbox.checked; })
+        .catch(() => checkbox.checked = !checkbox.checked);
+    }
+
+    // Auto-hide alerts
+    setTimeout(() => {
+      document.querySelectorAll('.alert').forEach(el => el.style.opacity = '0');
+    }, 3000);
+  </script>
+</body>
+</html>
