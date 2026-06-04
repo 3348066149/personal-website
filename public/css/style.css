@@ -1,32 +1,53 @@
-/* ===== CSS Variables ===== */
+/**
+ * ============================================================
+ *  主样式文件 - public/css/style.css
+ *  功能：定义网站全部页面的样式
+ *  学习重点：CSS 变量、Flexbox、Grid、响应式设计、动画
+ * ============================================================
+ *
+ *  【CSS 基础概念】
+ *  选择器：   .class 选中所有 class="..." 的元素
+ *            #id    选中 id="..." 的唯一元素
+ *            el    选中所有 <el> 标签
+ *  盒模型：   margin(外边距) → border(边框) → padding(内边距) → content(内容)
+ *  单位：     px(像素)  rem(相对根字号)  %(百分比)  vh(视口高度)  vw(视口宽度)
+ */
+
+/* ============================================================
+   1. CSS 变量（Custom Properties）
+   作用：定义全局可复用的值，方便统一修改主题色等
+   用法：var(--变量名) 引用，比如 color: var(--accent)
+   好处：改一个地方，所有用到的地方都跟着变
+   ============================================================ */
 :root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-light: rgba(59, 130, 246, 0.08);
-  --card-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
-  --card-hover-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
-  --border-radius: 20px;
-  --border-radius-sm: 12px;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --max-width: 1200px;
-  --nav-bg: rgba(255,255,255,0.85);
-  --card-border: rgba(0,0,0,0.04);
-  --hero-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+  --bg-primary: #ffffff;              /* 主背景色（白色） */
+  --bg-secondary: #f8fafc;            /* 次要背景色（浅灰色） */
+  --text-primary: #0f172a;            /* 主文字颜色（深色） */
+  --text-secondary: #475569;          /* 次要文字颜色 */
+  --text-muted: #94a3b8;              /* 浅色辅助文字 */
+  --accent: #3b82f6;                  /* 主题色（蓝色） */
+  --accent-hover: #2563eb;            /* 主题色悬停状态 */
+  --accent-light: rgba(59, 130, 246, 0.08);  /* 主题色半透明 */
+  --card-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);          /* 卡片阴影 */
+  --card-hover-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);   /* 卡片悬停阴影 */
+  --border-radius: 20px;              /* 大圆角 */
+  --border-radius-sm: 12px;           /* 小圆角 */
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);  /* 过渡动画参数 */
+  --max-width: 1800px;                /* 页面最大宽度 */
+  --nav-bg: rgba(255,255,255,0.85);   /* 导航栏背景（半透明白） */
+  --card-border: rgba(0,0,0,0.04);    /* 卡片边框色 */
+  --hero-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);  /* 首屏渐变背景 */
   --footer-border: rgba(0,0,0,0.05);
 }
 
+/* 暗黑模式：用相同的变量名，但不同的值 */
 [data-theme="dark"] {
-  --bg-primary: #0f172a;
+  --bg-primary: #0f172a;              /* 深色背景 */
   --bg-secondary: #1e293b;
-  --text-primary: #f1f5f9;
+  --text-primary: #f1f5f9;            /* 浅色文字 */
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --accent: #60a5fa;
+  --accent: #60a5fa;                  /* 暗色模式下主题色更亮 */
   --accent-hover: #3b82f6;
   --accent-light: rgba(96, 165, 250, 0.12);
   --card-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
@@ -37,17 +58,21 @@
   --footer-border: rgba(255,255,255,0.06);
 }
 
-/* ===== Page Loader ===== */
+/* ============================================================
+   2. 页面加载器（Page Loader）
+   作用：打开页面时显示加载动画
+   学习重点：@keyframes 动画、CSS 定位、过渡
+   ============================================================ */
 .page-loader {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
+  position: fixed;       /* 固定在屏幕上方 */
+  inset: 0;              /* 覆盖整个屏幕（相当于 top:0;left:0;right:0;bottom:0） */
+  z-index: 9999;         /* 放到最上层 */
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.9s cubic-bezier(0.65, 0, 0.35, 1), visibility 0.9s cubic-bezier(0.65, 0, 0.35, 1);
-  animation: removeLoader 0s 3.5s forwards;
+  align-items: center;   /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  transition: opacity 0.9s cubic-bezier(0.65, 0, 0.35, 1), visibility 0.9s;
+  animation: removeLoader 0s 3.5s forwards;  /* 3.5秒后移除 */
 }
 
 @keyframes removeLoader {
@@ -63,10 +88,11 @@
   text-align: center;
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: column;  /* 纵向排列 */
   align-items: center;
 }
 
+/* 外圈旋转环 */
 .loader-ring-outer {
   position: absolute;
   width: 120px;
@@ -81,6 +107,7 @@
   transform: translate(-50%, -50%);
 }
 
+/* 内圈反向旋转环 */
 .loader-ring-inner {
   position: absolute;
   width: 90px;
@@ -90,12 +117,13 @@
   border-left-color: rgba(139, 92, 246, 0.2);
   border-radius: 50%;
   animation: loaderSpin720 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-direction: reverse;
+  animation-direction: reverse;  /* 反向旋转 */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
+/* 头像 */
 .loader-avatar {
   width: 72px;
   height: 72px;
@@ -112,7 +140,7 @@
 .loader-avatar img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;  /* 图片覆盖整个容器，不变形 */
 }
 
 .loader-text {
@@ -125,6 +153,7 @@
   animation: loaderFadeIn 0.6s ease 1s forwards;
 }
 
+/* ===== 加载器动画关键帧 ===== */
 @keyframes loaderSpin720 {
   0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.8); opacity: 0; }
   30% { opacity: 1; }
@@ -141,16 +170,20 @@
   to { opacity: 1; }
 }
 
-/* ===== Reset & Base ===== */
+/* ============================================================
+   3. 全局重置 & 基础样式
+   作用：统一不同浏览器的默认样式差异
+   学习重点：盒模型 box-sizing 的概念
+   ============================================================ */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  box-sizing: border-box;  /* 盒模型：padding 和 border 算在宽度里面 */
 }
 
 html {
-  scroll-behavior: smooth;
-  font-size: 16px;
+  scroll-behavior: smooth;  /* 平滑滚动 */
+  font-size: 16px;         /* 基础字号：1rem = 16px */
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -159,30 +192,34 @@ body {
   color: var(--text-primary);
   background: var(--bg-primary);
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: hidden;         /* 防止横向滚动 */
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-a { text-decoration: none; color: inherit; }
-ul { list-style: none; }
-img { max-width: 100%; height: auto; }
+a { text-decoration: none; color: inherit; }      /* 去掉链接下划线 */
+ul { list-style: none; }                           /* 去掉列表圆点 */
+img { max-width: 100%; height: auto; }             /* 图片自适应 */
 .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
 
-/* ===== Navigation ===== */
+/* ============================================================
+   4. 导航栏（Navbar）
+   作用：固定在页面顶部的导航菜单
+   学习重点：position: fixed 固定定位、backdrop-filter 毛玻璃效果
+   ============================================================ */
 .navbar {
-  position: fixed;
+  position: fixed;          /* 固定在页面顶部 */
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
   padding: 16px 0;
   transition: var(--transition);
-  background: transparent;
+  background: transparent;  /* 初始透明 */
 }
 
 .navbar.scrolled {
   background: var(--nav-bg);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);          /* 毛玻璃效果 */
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   padding: 12px 0;
@@ -191,14 +228,15 @@ img { max-width: 100%; height: auto; }
 .nav-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between;  /* 左右两端对齐 */
 }
 
 .nav-logo {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 800;
+  white-space: nowrap;
   background: linear-gradient(135deg, var(--accent), #8b5cf6);
-  -webkit-background-clip: text;
+  -webkit-background-clip: text;          /* 文字渐变效果 */
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
@@ -227,7 +265,7 @@ img { max-width: 100%; height: auto; }
 .theme-toggle:hover {
   background: var(--accent-light);
   color: var(--accent);
-  transform: rotate(15deg);
+  transform: rotate(15deg);  /* 旋转动画 */
 }
 
 .nav-menu {
@@ -244,6 +282,7 @@ img { max-width: 100%; height: auto; }
   padding: 4px 0;
 }
 
+/* 导航链接下划线动画 */
 .nav-link::after {
   content: '';
   position: absolute;
@@ -257,10 +296,10 @@ img { max-width: 100%; height: auto; }
 }
 
 .nav-link:hover, .nav-link.active { color: var(--accent); }
-.nav-link:hover::after, .nav-link.active::after { width: 100%; }
+.nav-link:hover::after, .nav-link.active::after { width: 100%; }  /* 下划线展开 */
 
 .nav-toggle {
-  display: none;
+  display: none;            /* 桌面端隐藏，移动端才显示 */
   flex-direction: column;
   gap: 5px;
   cursor: pointer;
@@ -275,13 +314,18 @@ img { max-width: 100%; height: auto; }
   transition: var(--transition);
 }
 
+/* 汉堡图标 → X 图标的动画 */
 .nav-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
 .nav-toggle.active span:nth-child(2) { opacity: 0; }
 .nav-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
-/* ===== Hero ===== */
+/* ============================================================
+   5. 首屏（Hero）
+   作用：页面打开时看到的第一屏，展示头像、标题、简介
+   学习重点：min-height: 100vh 全屏效果、CSS 动画
+   ============================================================ */
 .hero {
-  min-height: 100vh;
+  min-height: 100vh;         /* 至少占满浏览器可视高度 */
   display: flex;
   align-items: center;
   position: relative;
@@ -295,6 +339,7 @@ img { max-width: 100%; height: auto; }
   overflow: hidden;
 }
 
+/* 背景粒子装饰 */
 .hero-particle {
   position: absolute;
   width: 400px;
@@ -326,14 +371,11 @@ img { max-width: 100%; height: auto; }
   margin: 0 auto 32px;
   position: relative;
   border: 4px solid rgba(255,255,255,0.9);
-  box-shadow:
-    0 0 0 6px rgba(59,130,246,0.15),
-    0 0 0 12px rgba(59,130,246,0.08),
-    0 0 40px rgba(59,130,246,0.2),
-    0 20px 60px rgba(0,0,0,0.1);
+  box-shadow: 0 0 0 6px rgba(59,130,246,0.15), 0 0 0 12px rgba(59,130,246,0.08), 0 0 40px rgba(59,130,246,0.2), 0 20px 60px rgba(0,0,0,0.1);
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* 头像脉冲动画环 */
 .hero-avatar-ring {
   position: absolute;
   inset: -8px;
@@ -348,14 +390,7 @@ img { max-width: 100%; height: auto; }
   50% { transform: scale(1.06); opacity: 0.5; }
 }
 
-.hero-avatar:hover {
-  transform: scale(1.04);
-  box-shadow:
-    0 0 0 6px rgba(59,130,246,0.25),
-    0 0 0 16px rgba(59,130,246,0.1),
-    0 0 50px rgba(59,130,246,0.3),
-    0 25px 80px rgba(0,0,0,0.15);
-}
+.hero-avatar:hover { transform: scale(1.04); }
 
 .hero-avatar img {
   width: 100%;
@@ -364,14 +399,13 @@ img { max-width: 100%; height: auto; }
   transition: transform 0.6s ease;
 }
 
-.hero-avatar:hover img {
-  transform: scale(1.06);
-}
+.hero-avatar:hover img { transform: scale(1.06); }
 
 .hero-title {
-  font-size: 3.8rem;
-  font-weight: 800;
+  font-size: 3.6rem;
+  font-weight: 1200;
   margin-bottom: 16px;
+  white-space: nowrap;
   background: linear-gradient(135deg, var(--text-primary), var(--accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -395,7 +429,10 @@ img { max-width: 100%; height: auto; }
   margin-bottom: 40px;
 }
 
-/* ===== Buttons ===== */
+/* ============================================================
+   6. 按钮（Buttons）
+   学习重点：inline-flex 弹性布局按钮
+   ============================================================ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -409,7 +446,7 @@ img { max-width: 100%; height: auto; }
   border: 2px solid transparent;
 }
 
-.btn-primary {
+.btn-primary {                     /* 主要按钮：蓝色实心 */
   background: var(--accent);
   color: white;
   box-shadow: 0 4px 15px rgba(59,130,246,0.3);
@@ -421,7 +458,7 @@ img { max-width: 100%; height: auto; }
   box-shadow: 0 8px 25px rgba(59,130,246,0.35);
 }
 
-.btn-outline {
+.btn-outline {                     /* 次要按钮：蓝色描边 */
   background: transparent;
   color: var(--accent);
   border-color: var(--accent);
@@ -432,7 +469,9 @@ img { max-width: 100%; height: auto; }
   transform: translateY(-2px);
 }
 
-/* ===== Social ===== */
+/* ============================================================
+   7. 社交图标（Social Links）
+   ============================================================ */
 .hero-social {
   display: flex;
   gap: 20px;
@@ -460,13 +499,17 @@ img { max-width: 100%; height: auto; }
   box-shadow: 0 8px 20px rgba(59,130,246,0.3);
 }
 
-.social-link.large {
+.social-link.large {               /* 大号社交图标（底部联系区） */
   width: 56px;
   height: 56px;
   font-size: 1.4rem;
 }
 
-/* ===== Stats ===== */
+/* ============================================================
+   8. 统计区域（Stats）
+   作用：显示各分类的项目数量
+   学习重点：CSS Grid 布局
+   ============================================================ */
 .stats {
   padding: 80px 0;
   background: var(--bg-secondary);
@@ -474,7 +517,7 @@ img { max-width: 100%; height: auto; }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));  /* 响应式网格 */
   gap: 24px;
 }
 
@@ -506,7 +549,9 @@ img { max-width: 100%; height: auto; }
   font-weight: 500;
 }
 
-/* ===== Sections ===== */
+/* ============================================================
+   9. 通用区域样式（Sections）
+   ============================================================ */
 .projects, .featured, .about, .contact {
   padding: 100px 0;
 }
@@ -527,13 +572,44 @@ img { max-width: 100%; height: auto; }
   font-size: 1.1rem;
 }
 
-/* ===== Filter Tabs ===== */
+/* ============================================================
+   10. 分类筛选标签（Filter Tabs）
+   作用：让用户点击标签来筛选不同分类的项目
+   学习重点：溢出滚动、响应式居中
+   ============================================================ */
 .filter-tabs {
   display: flex;
   gap: 12px;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 48px;
-  flex-wrap: wrap;
+  overflow-x: auto;           /* 手机端可以左右滑动 */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) transparent;
+  max-width: 100%;
+}
+
+.filter-tabs::-webkit-scrollbar { height: 4px; }
+.filter-tabs::-webkit-scrollbar-track { background: transparent; }
+.filter-tabs::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
+
+/* 两头留空 */
+.filter-tabs::after,
+.filter-tabs::before {
+  content: '';
+  flex-shrink: 0;
+  width: 24px;
+  min-width: 24px;
+}
+
+/* 桌面端居中显示 */
+@media (min-width: 769px) {
+  .filter-tabs { justify-content: center; }
 }
 
 .filter-btn {
@@ -546,6 +622,8 @@ img { max-width: 100%; height: auto; }
   font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .filter-btn:hover {
@@ -554,17 +632,21 @@ img { max-width: 100%; height: auto; }
   border-color: var(--accent);
 }
 
-.filter-btn.active {
+.filter-btn.active {                 /* 激活状态 */
   background: var(--accent);
   color: white;
   border-color: var(--accent);
   box-shadow: 0 4px 15px rgba(59,130,246,0.3);
 }
 
-/* ===== Project Grid ===== */
+/* ============================================================
+   11. 项目网格（Project Grid）
+   作用：以卡片网格形式展示所有项目
+   学习重点：CSS Grid 网格布局
+   ============================================================ */
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));  /* 3列等宽 */
   gap: 28px;
 }
 
@@ -583,7 +665,7 @@ img { max-width: 100%; height: auto; }
 }
 
 .project-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-8px);  /* 悬停时上移 */
   box-shadow: var(--card-hover-shadow);
 }
 
@@ -601,7 +683,7 @@ img { max-width: 100%; height: auto; }
 }
 
 .project-card:hover .project-card-image img {
-  transform: scale(1.08);
+  transform: scale(1.08);        /* 悬停时图片放大 */
 }
 
 .project-card-overlay {
@@ -621,9 +703,10 @@ img { max-width: 100%; height: auto; }
   color: var(--text-primary);
 }
 
-.category-ai { color: #3b82f6; }
-.category-unity { color: #8b5cf6; }
-.category-comprehensive { color: #10b981; }
+/* 三种分类的颜色标识 */
+.category-ai { color: #3b82f6; }              /* AI 项目 - 蓝色 */
+.category-unity { color: #8b5cf6; }           /* Unity 项目 - 紫色 */
+.category-comprehensive { color: #10b981; }   /* 综合项目 - 绿色 */
 
 .project-card-body {
   padding: 24px;
@@ -634,7 +717,7 @@ img { max-width: 100%; height: auto; }
   font-weight: 700;
   margin-bottom: 10px;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 1;           /* 最多显示1行，超出省略号 */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -645,7 +728,7 @@ img { max-width: 100%; height: auto; }
   line-height: 1.6;
   margin-bottom: 16px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2;           /* 最多显示2行 */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -667,7 +750,7 @@ img { max-width: 100%; height: auto; }
   font-weight: 500;
 }
 
-.tag-plus {
+.tag-plus {                         /* 多余的标签数显示 "+N" */
   background: var(--bg-secondary);
   color: var(--text-muted);
 }
@@ -685,7 +768,7 @@ img { max-width: 100%; height: auto; }
   color: var(--text-muted);
 }
 
-.btn-details {
+.btn-details {                      /* 详情箭头按钮 */
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -702,10 +785,14 @@ img { max-width: 100%; height: auto; }
 .btn-details:hover {
   background: var(--accent);
   color: white;
-  transform: translateX(4px);
+  transform: translateX(4px);  /* 向右滑动效果 */
 }
 
-/* ===== Featured Section ===== */
+/* ============================================================
+   12. 精选项目轮播（Featured Carousel）
+   作用：在首页用轮播展示精选项目
+   学习重点：CSS transform 实现轮播
+   ============================================================ */
 .featured {
   background: var(--bg-secondary);
 }
@@ -731,23 +818,40 @@ img { max-width: 100%; height: auto; }
 }
 
 .featured-card {
-  flex: 0 0 calc((100% - 48px) / 3);
+  flex: 0 0 calc((100% - 48px) / 3);  /* 每行3个卡片 */
   flex-shrink: 0;
   min-width: 0;
   background: var(--bg-primary);
   border-radius: var(--border-radius);
   overflow: hidden;
   cursor: pointer;
-  transition: var(--transition);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
   box-shadow: var(--card-shadow);
+  border: 1px solid var(--card-border);
+  position: relative;
+}
+
+.featured-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: calc(var(--border-radius) + 1px);
+  background: linear-gradient(135deg, transparent, transparent);
+  z-index: 0;
+  pointer-events: none;
+  transition: background 0.5s ease;
 }
 
 .featured-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
 }
 
-.featured-prev, .featured-next {
+.featured-card:hover::before {
+  background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.08));
+}
+
+.featured-prev, .featured-next {   /* 左右箭头按钮 */
   flex-shrink: 0;
   width: 44px;
   height: 44px;
@@ -777,12 +881,7 @@ img { max-width: 100%; height: auto; }
   transform: none;
 }
 
-.featured-prev:disabled:hover, .featured-next:disabled:hover {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-}
-
-.featured-dots {
+.featured-dots {                    /* 底部导航小圆点 */
   display: flex;
   justify-content: center;
   gap: 8px;
@@ -801,30 +900,51 @@ img { max-width: 100%; height: auto; }
   padding: 0;
 }
 
-.featured-dots .dot.active {
+.featured-dots .dot.active {        /* 当前页小圆点变成长条 */
   opacity: 1;
   background: var(--accent);
   width: 28px;
   border-radius: 4px;
 }
 
-.featured-card-bg {
+.featured-card-image {
+  position: relative;
   height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 }
 
-.featured-icon {
-  font-size: 3rem;
-  color: rgba(255,255,255,0.9);
+.featured-card-image::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(transparent, var(--bg-primary));
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.featured-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s, filter 0.4s ease;
+}
+
+.featured-card:hover .featured-card-image img {
+  transform: scale(1.08);
+  filter: brightness(1.05) contrast(1.05);
 }
 
 .featured-card h4 {
   font-size: 1.1rem;
   font-weight: 700;
   padding: 20px 24px 8px;
+  transition: color 0.3s ease;
 }
+
+.featured-card:hover h4 { color: var(--accent); }
 
 .featured-card p {
   color: var(--text-secondary);
@@ -836,7 +956,9 @@ img { max-width: 100%; height: auto; }
   overflow: hidden;
 }
 
-/* ===== About ===== */
+/* ============================================================
+   13. 关于我（About）- 预留区域
+   ============================================================ */
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -866,9 +988,7 @@ img { max-width: 100%; height: auto; }
   transition: transform 0.6s ease;
 }
 
-.about-image-frame:hover img {
-  transform: scale(1.03);
-}
+.about-image-frame:hover img { transform: scale(1.03); }
 
 .about-text {
   color: var(--text-secondary);
@@ -896,7 +1016,11 @@ img { max-width: 100%; height: auto; }
   color: var(--accent);
 }
 
-/* ===== Contact ===== */
+/* ============================================================
+   14. 联系我（Contact）
+   作用：展示邮箱、社交链接
+   学习重点：flex 居中对齐
+   ============================================================ */
 .contact {
   background: var(--bg-secondary);
   text-align: center;
@@ -924,7 +1048,9 @@ img { max-width: 100%; height: auto; }
   justify-content: center;
 }
 
-/* ===== Footer ===== */
+/* ============================================================
+   15. 页脚（Footer）
+   ============================================================ */
 .footer {
   padding: 40px 0;
   text-align: center;
@@ -933,7 +1059,11 @@ img { max-width: 100%; height: auto; }
   border-top: 1px solid rgba(0,0,0,0.05);
 }
 
-/* ===== Modal ===== */
+/* ============================================================
+   16. 弹窗（Modal）
+   作用：点击项目卡片后显示详情
+   学习重点：fixed 定位、opacity 切换显示隐藏
+   ============================================================ */
 .modal {
   position: fixed;
   inset: 0;
@@ -942,16 +1072,16 @@ img { max-width: 100%; height: auto; }
   align-items: center;
   justify-content: center;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none;      /* 隐藏时不可点击 */
   transition: opacity 0.3s ease;
 }
 
 .modal.active {
   opacity: 1;
-  pointer-events: auto;
+  pointer-events: auto;      /* 显示时可点击 */
 }
 
-.modal-backdrop {
+.modal-backdrop {             /* 半透明黑色遮罩 */
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.5);
@@ -967,12 +1097,12 @@ img { max-width: 100%; height: auto; }
   max-height: 85vh;
   overflow-y: auto;
   transform: scale(0.95);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s;
   box-shadow: 0 50px 100px rgba(0,0,0,0.15);
 }
 
 .modal.active .modal-content {
-  transform: scale(1);
+  transform: scale(1);       /* 弹窗弹出时从小变大 */
 }
 
 .modal-close {
@@ -996,7 +1126,7 @@ img { max-width: 100%; height: auto; }
 
 .modal-close:hover {
   background: rgba(0,0,0,0.5);
-  transform: rotate(90deg);
+  transform: rotate(90deg);   /* 旋转关闭动画 */
 }
 
 .modal-header {
@@ -1011,7 +1141,7 @@ img { max-width: 100%; height: auto; }
   object-fit: cover;
 }
 
-.modal-header-overlay {
+.modal-header-overlay {        /* 封面底部渐变遮罩 + 标题 */
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1035,6 +1165,36 @@ img { max-width: 100%; height: auto; }
   padding: 28px;
 }
 
+/* 微信弹窗 */
+.wechat-modal-content {
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  padding: 40px 32px 32px;
+}
+
+.wechat-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.wechat-qr-img {
+  width: 220px;
+  height: 220px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #f8fafc;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.wechat-text {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 .modal-description {
   color: var(--text-secondary);
   line-height: 1.8;
@@ -1056,9 +1216,7 @@ img { max-width: 100%; height: auto; }
   font-size: 0.9rem;
 }
 
-.meta-item i {
-  color: var(--accent);
-}
+.meta-item i { color: var(--accent); }
 
 .modal-actions {
   display: flex;
@@ -1072,7 +1230,9 @@ img { max-width: 100%; height: auto; }
   min-width: 140px;
 }
 
-/* ===== Back to Top ===== */
+/* ============================================================
+   17. 返回顶部按钮（Back to Top）
+   ============================================================ */
 .back-to-top {
   position: fixed;
   bottom: 30px;
@@ -1104,33 +1264,36 @@ img { max-width: 100%; height: auto; }
   transform: translateY(-3px);
 }
 
-/* ===== Animations ===== */
+/* ============================================================
+   18. 通用动画关键帧
+   ============================================================ */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== Responsive ===== */
+/* ============================================================
+   19. 响应式设计（Responsive）
+   作用：在不同屏幕尺寸下调整布局
+   学习重点：Media Query 媒体查询
+   ============================================================ */
+
+/* 平板端（宽度 ≤ 1024px） */
 @media (max-width: 1024px) {
-  .hero-title { font-size: 2.8rem; }
+  .hero-title { font-size: 2.4rem; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .featured-card {
-    flex: 0 0 calc((100% - 24px) / 2);
+    flex: 0 0 calc((100% - 24px) / 2);  /* 轮播每行2个 */
   }
   .hero-avatar { width: 160px; height: 160px; }
 }
 
+/* 手机端（宽度 ≤ 768px） */
 @media (max-width: 768px) {
   .nav-menu {
     position: fixed;
     top: 0;
-    right: -100%;
+    right: -100%;               /* 默认隐藏在右侧 */
     width: 280px;
     height: 100vh;
     background: var(--bg-primary);
@@ -1141,14 +1304,14 @@ img { max-width: 100%; height: auto; }
     z-index: 999;
   }
 
-  .nav-menu.active { right: 0; }
+  .nav-menu.active { right: 0; }   /* 展开时滑入 */
 
-  .nav-toggle { display: flex; }
+  .nav-toggle { display: flex; }   /* 手机端显示汉堡菜单按钮 */
 
-  .hero-title { font-size: 2.6rem; }
+  .hero-title { font-size: 2rem; }
   .hero-subtitle { font-size: 1rem; }
 
-  .projects-grid { grid-template-columns: 1fr; }
+  .projects-grid { grid-template-columns: 1fr; }   /* 项目改为单列显示 */
 
   .about-grid {
     grid-template-columns: 1fr;
@@ -1156,7 +1319,7 @@ img { max-width: 100%; height: auto; }
   }
 
   .featured-card {
-    flex: 0 0 100%;
+    flex: 0 0 100%;               /* 轮播每行1个 */
   }
 
   .modal-header { height: 200px; }
@@ -1168,10 +1331,61 @@ img { max-width: 100%; height: auto; }
   .section-title { font-size: 1.8rem; }
 }
 
+/* 小手机端（宽度 ≤ 480px） */
 @media (max-width: 480px) {
-  .hero-title { font-size: 2rem; }
+  .hero-title { font-size: 1.6rem; }
   .hero-avatar { width: 140px; height: 140px; }
   .hero-actions { flex-direction: column; align-items: center; }
   .btn { width: 100%; justify-content: center; }
   .modal-actions .btn { min-width: auto; }
+}
+
+/* ============================================================
+   20. 分页（Pagination）
+   作用：项目列表分页导航按钮
+   ============================================================ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 48px;
+}
+
+.page-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.page-btn.active {              /* 当前页 */
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+}
+
+@media (max-width: 768px) {
+  .pagination { gap: 6px; }
+  .page-btn { width: 36px; height: 36px; font-size: 0.8rem; }
+}
+
+@media (max-width: 400px) {
+  .hero-title { font-size: 1.2rem; }
 }

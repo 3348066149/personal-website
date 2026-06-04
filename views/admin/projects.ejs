@@ -33,9 +33,17 @@
     <main class="admin-main">
       <div class="admin-header">
         <h1><i class="fas fa-folder"></i> 项目管理</h1>
-        <button class="btn btn-primary" onclick="document.getElementById('addModal').classList.add('active')">
-          <i class="fas fa-plus"></i> 添加项目
-        </button>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i> 刷新
+          </button>
+          <button class="btn btn-outline" onclick="showCategoryManager()">
+            <i class="fas fa-tags"></i> 项目类别
+          </button>
+          <button class="btn btn-primary" onclick="document.getElementById('addModal').classList.add('active')">
+            <i class="fas fa-plus"></i> 添加项目
+          </button>
+        </div>
       </div>
 
       <% if (locals.message) { %>
@@ -44,9 +52,9 @@
 
       <div class="admin-filter-tabs">
         <a href="/admin/projects" class="filter-btn <%= currentCategory === 'all' ? 'active' : '' %>">全部</a>
-        <a href="/admin/projects?category=ai" class="filter-btn <%= currentCategory === 'ai' ? 'active' : '' %>">AI 项目</a>
-        <a href="/admin/projects?category=unity" class="filter-btn <%= currentCategory === 'unity' ? 'active' : '' %>">Unity 项目</a>
-        <a href="/admin/projects?category=comprehensive" class="filter-btn <%= currentCategory === 'comprehensive' ? 'active' : '' %>">综合项目</a>
+        <% categories && categories.forEach(function(c) { %>
+          <a href="/admin/projects?category=<%= c.name %>" class="filter-btn <%= currentCategory === c.name ? 'active' : '' %>"><%= c.label %></a>
+        <% }) %>
       </div>
 
       <div class="table-container">
@@ -107,9 +115,9 @@
           <div class="form-group">
             <label>分类 *</label>
             <select name="category" required>
-              <option value="ai">AI 项目</option>
-              <option value="unity">Unity 项目</option>
-              <option value="comprehensive">综合项目</option>
+              <% categories && categories.forEach(function(c) { %>
+                <option value="<%= c.name %>"><%= c.label %></option>
+              <% }) %>
             </select>
           </div>
         </div>
@@ -197,9 +205,9 @@
           <div class="form-group">
             <label>分类 *</label>
             <select name="category" id="editCategory" required>
-              <option value="ai">AI 项目</option>
-              <option value="unity">Unity 项目</option>
-              <option value="comprehensive">综合项目</option>
+              <% categories && categories.forEach(function(c) { %>
+                <option value="<%= c.name %>"><%= c.label %></option>
+              <% }) %>
             </select>
           </div>
         </div>
@@ -266,11 +274,67 @@
           <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> 更新</button>
           <button type="button" class="btn btn-outline" onclick="document.getElementById('editModal').classList.remove('active')">取消</button>
         </div>
+        <div class="form-actions" style="border-top-color:#fee2e2;margin-top:16px;padding-top:16px">
+          <button type="button" class="btn btn-sm btn-clear-cache" id="clearCacheBtn" style="display:none" onclick="showClearCacheDialog()">
+            <i class="fas fa-broom"></i> 清理缓存
+          </button>
+        </div>
       </form>
     </div>
   </div>
 
+  <!-- OldTemp File List Modal -->
+  <div class="modal" id="oldTempModal">
+    <div class="modal-backdrop" onclick="document.getElementById('oldTempModal').classList.remove('active')"></div>
+    <div class="modal-content" style="max-width:500px">
+      <div class="modal-header">
+        <h2><i class="fas fa-archive"></i> 缓存文件</h2>
+        <button class="modal-close" onclick="document.getElementById('oldTempModal').classList.remove('active')">&times;</button>
+      </div>
+      <div class="modal-body" id="oldTempBody">
+        <div id="oldTempFileList"></div>
+      </div>
+      <div class="form-actions" id="oldTempActions" style="display:none">
+        <button class="btn btn-primary" onclick="clearOldTemp()"><i class="fas fa-trash"></i> 清理全部</button>
+        <button class="btn btn-outline" onclick="document.getElementById('oldTempModal').classList.remove('active')">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Manager Modal -->
+  <div class="modal" id="categoryModal">
+    <div class="modal-backdrop" onclick="closeCategoryManager()"></div>
+    <div class="modal-content" style="max-width:520px">
+      <div class="modal-header">
+        <h2><i class="fas fa-tags"></i> 项目类别管理</h2>
+        <button class="modal-close" onclick="closeCategoryManager()">&times;</button>
+      </div>
+      <div class="modal-body" id="categoryModalBody">
+        <div id="categoryList"></div>
+        <div class="form-actions" style="border-top-color:#e2e8f0;margin-top:16px;padding-top:16px">
+          <button class="btn btn-primary" onclick="addCategory()"><i class="fas fa-plus"></i> 新增类别</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Toggle featured status
+    function toggleFeatured(id, checkbox) {
+      fetch('/admin/projects/toggle-featured/' + id, { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (!d.success) {
+            checkbox.checked = !checkbox.checked;
+            alert('操作失败');
+          }
+        })
+        .catch(function() {
+          checkbox.checked = !checkbox.checked;
+          alert('网络错误');
+        });
+    }
+
     // Source type toggle for Add
     document.getElementById('addSourceType').addEventListener('change', function() {
       const val = this.value;
@@ -285,7 +349,102 @@
       document.getElementById('editLocalFields').style.display = (val === 'local' || val === 'both') ? 'block' : 'none';
     });
 
+    // ===== Upload Progress =====
+    function submitWithProgress(form, submitBtn) {
+      const formData = new FormData(form);
+      const xhr = new XMLHttpRequest();
+      const action = form.getAttribute('action');
+
+      // Create progress overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'upload-overlay';
+      overlay.innerHTML = '<div class="upload-modal"><div class="upload-icon" id="uploadIcon"><i class="fas fa-cloud-upload-alt"></i></div><div class="upload-progress-bar"><div class="upload-progress-fill" id="progressFill"></div></div><div class="upload-progress-text" id="progressText">正在上传 0%</div></div>';
+      document.body.appendChild(overlay);
+
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      const uploadIcon = document.getElementById('uploadIcon');
+
+      xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          progressFill.style.width = pct + '%';
+          progressText.textContent = '正在上传 ' + pct + '%';
+        }
+      });
+
+      xhr.addEventListener('load', function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          progressFill.style.width = '100%';
+          progressText.textContent = '上传完成';
+          uploadIcon.innerHTML = '<i class="fas fa-check-circle" style="color:#22c55e"></i>';
+          overlay.querySelector('.upload-modal').classList.add('success');
+          setTimeout(function() { overlay.remove(); window.location.href = xhr.responseURL; }, 800);
+        } else {
+          uploadIcon.innerHTML = '<i class="fas fa-times-circle" style="color:#ef4444"></i>';
+          progressText.textContent = '上传失败';
+          overlay.querySelector('.upload-modal').classList.add('error');
+          setTimeout(function() { overlay.remove(); }, 1500);
+        }
+      });
+
+      xhr.addEventListener('error', function() {
+        uploadIcon.innerHTML = '<i class="fas fa-times-circle" style="color:#ef4444"></i>';
+        progressText.textContent = '网络错误';
+        setTimeout(function() { overlay.remove(); }, 1500);
+      });
+
+      xhr.open('POST', action, true);
+      xhr.send(formData);
+
+      return false; // Prevent normal form submission
+    }
+
+    // Hook add form
+    document.querySelector('#addModal form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      submitWithProgress(this, this.querySelector('button[type="submit"]'));
+    });
+
+    // ===== Edit form with file confirmation =====
+    var currentEditId = null;
+    var pendingFileFields = [];
+
+    document.querySelector('#editModal form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var hasFiles = false;
+      this.querySelectorAll('input[type=\"file\"]').forEach(function(el) {
+        if (el.files.length > 0) hasFiles = true;
+      });
+
+      if (hasFiles) {
+        // Show warning dialog
+        var overlay = document.createElement('div');
+        overlay.className = 'upload-overlay';
+        overlay.innerHTML = '<div class=\"upload-modal\" style=\"min-width:380px\"><div class=\"upload-icon\" style=\"font-size:2.5rem;color:#f59e0b;margin-bottom:16px\"><i class=\"fas fa-exclamation-triangle\"></i></div><h3 style=\"font-size:1.1rem;margin-bottom:8px\">修改项目将替换已有文件</h3><p style=\"color:#64748b;font-size:0.9rem;margin-bottom:24px;line-height:1.6\">旧文件将被移至 <strong>OldTemp</strong> 缓存目录<br>如需恢复可随时查看或清理</p><div class=\"form-actions\" style=\"justify-content:center;border:none;padding:0\"><button class=\"btn btn-primary\" id=\"confirmOldTempBtn\"><i class=\"fas fa-check\"></i> 我已了解</button><button class=\"btn btn-outline\" id=\"cancelOldTempBtn\">取消</button></div></div>';
+        document.body.appendChild(overlay);
+
+        document.getElementById('confirmOldTempBtn').addEventListener('click', function() {
+          overlay.remove();
+          // Send old files to OldTemp first
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', '/admin/projects/move-to-oldtemp/' + currentEditId, true);
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          xhr.onload = function() {
+            submitWithProgress(document.querySelector('#editModal form'));
+          };
+          xhr.send();
+        });
+        document.getElementById('cancelOldTempBtn').addEventListener('click', function() {
+          overlay.remove();
+        });
+      } else {
+        submitWithProgress(this);
+      }
+    });
+
     function editProject(project) {
+      currentEditId = project.id;
       document.getElementById('editForm').action = '/admin/projects/edit/' + project.id;
       document.getElementById('editTitle').value = project.title || '';
       document.getElementById('editCategory').value = project.category || 'ai';
@@ -300,25 +459,136 @@
       document.getElementById('editSortOrder').value = project.sort_order || 0;
       document.getElementById('editFeatured').checked = project.is_featured === 'yes';
 
-      // Update source type visibility
       const st = project.source_type || 'url';
       document.getElementById('editUrlFields').style.display = (st === 'url' || st === 'both') ? 'block' : 'none';
       document.getElementById('editLocalFields').style.display = (st === 'local' || st === 'both') ? 'block' : 'none';
 
+      // Check if OldTemp exists
+      var cacheBtn = document.getElementById('clearCacheBtn');
+      fetch('/admin/projects/oldtemp-files/' + project.id)
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          cacheBtn.style.display = d.exists ? 'inline-flex' : 'none';
+          cacheBtn.dataset.id = project.id;
+        })
+        .catch(function() { cacheBtn.style.display = 'none'; });
+
       document.getElementById('editModal').classList.add('active');
     }
 
-    function toggleFeatured(id, checkbox) {
-      fetch('/admin/projects/toggle-featured/' + id, { method: 'POST' })
-        .then(r => r.json())
-        .then(d => { if (!d.success) checkbox.checked = !checkbox.checked; })
-        .catch(() => checkbox.checked = !checkbox.checked);
+    // ===== Clear Cache functions =====
+    function showClearCacheDialog() {
+      var id = document.getElementById('clearCacheBtn').dataset.id;
+      fetch('/admin/projects/oldtemp-files/' + id)
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var listEl = document.getElementById('oldTempFileList');
+          var actionsEl = document.getElementById('oldTempActions');
+          if (d.exists && d.files.length > 0) {
+            listEl.innerHTML = '<div style=\"background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px;margin-bottom:16px\"><i class=\"fas fa-exclamation-triangle\" style=\"color:#f59e0b;margin-right:8px\"></i><strong style=\"color:#c2410c\">此行为会删除项目老文件</strong><p style=\"color:#a16207;font-size:0.85rem;margin-top:8px\">以下文件将被永久删除，无法恢复：</p></div><ul style=\"list-style:none;padding:0;margin:0 0 20px 0\">';
+            d.files.forEach(function(f) {
+              listEl.innerHTML += '<li style=\"padding:8px 12px;background:#f8fafc;border-radius:8px;margin-bottom:6px;font-size:0.85rem;display:flex;align-items:center;gap:8px\"><i class=\"fas fa-file\" style=\"color:#94a3b8\"></i> ' + f + '</li>';
+            });
+            listEl.innerHTML += '</ul>';
+            actionsEl.style.display = 'flex';
+            actionsEl.dataset.id = id;
+          } else {
+            listEl.innerHTML = '<p style=\"color:#94a3b8;text-align:center;padding:24px\">暂无缓存文件</p>';
+            actionsEl.style.display = 'none';
+          }
+          document.getElementById('oldTempModal').classList.add('active');
+        });
     }
 
-    // Auto-hide alerts
-    setTimeout(() => {
-      document.querySelectorAll('.alert').forEach(el => el.style.opacity = '0');
-    }, 3000);
+    function clearOldTemp() {
+      var id = document.getElementById('oldTempActions').dataset.id;
+      fetch('/admin/projects/clear-oldtemp/' + id, { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          document.getElementById('oldTempModal').classList.remove('active');
+          document.getElementById('clearCacheBtn').style.display = 'none';
+          // Show success message
+          var alert = document.createElement('div');
+          alert.className = 'alert alert-success';
+          alert.innerHTML = '<i class=\"fas fa-check-circle\"></i> ' + (d.message || '缓存已清理');
+          document.querySelector('.admin-main .admin-header').after(alert);
+          setTimeout(function() { alert.style.opacity = '0'; }, 3000);
+        });
+    }
+
+    // ===== Category Manager =====
+    function showCategoryManager() {
+      var body = document.getElementById('categoryList');
+      body.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+      document.getElementById('categoryModal').classList.add('active');
+      loadCategories();
+    }
+
+    function closeCategoryManager() {
+      document.getElementById('categoryModal').classList.remove('active');
+    }
+
+    function loadCategories() {
+      fetch('/admin/categories')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (!d.success) return;
+          var html = '';
+          d.data.forEach(function(cat) {
+            html += '<div class="category-item" data-id="' + cat.id + '" data-name="' + cat.name + '">';
+            html += '  <div class="category-info">';
+            html += '    <span class="category-label">' + escHtml(cat.label) + '</span>';
+            html += '  </div>';
+            html += '  <div class="category-actions">';
+            html += '    <button class="btn-sm btn-edit" onclick="editCategory(' + cat.id + ')"><i class="fas fa-edit"></i></button>';
+            html += '    <button class="btn-sm btn-delete" onclick="deleteCategory(' + cat.id + ')"><i class="fas fa-trash"></i></button>';
+            html += '  </div>';
+            html += '</div>';
+          });
+          document.getElementById('categoryList').innerHTML = html;
+        });
+    }
+
+    function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }
+
+    function addCategory() {
+      var name = prompt('请输入类别名称');
+      if (!name || !name.trim()) return;
+      fetch('/admin/categories/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'name=' + encodeURIComponent(name.trim()) + '&label=' + encodeURIComponent(name.trim())
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.success) { loadCategories(); location.reload(); }
+        else { alert(d.message || '添加失败'); }
+      });
+    }
+
+    function editCategory(id) {
+      var item = document.querySelector('.category-item[data-id="' + id + '"]');
+      if (!item) return;
+      var oldLabel = item.querySelector('.category-label').textContent;
+      var newLabel = prompt('类别名称:', oldLabel);
+      if (!newLabel || !newLabel.trim()) return;
+      fetch('/admin/categories/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + id + '&name=' + encodeURIComponent(newLabel.trim())
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.success) { loadCategories(); location.reload(); }
+        else { alert(d.message || '修改失败'); }
+      });
+    }
+
+    function deleteCategory(id) {
+      if (!confirm('确定删除此分类？如果有项目属于此分类将无法删除。')) return;
+      fetch('/admin/categories/delete/' + id, { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) { loadCategories(); location.reload(); }
+          else { alert(d.message || '删除失败'); }
+        });
+    }
   </script>
 </body>
 </html>

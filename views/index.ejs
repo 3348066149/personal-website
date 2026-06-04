@@ -59,32 +59,39 @@
         <% if (config.github_url) { %>
           <a href="<%= config.github_url %>" target="_blank" class="social-link"><i class="fab fa-github"></i></a>
         <% } %>
-        <% if (config.linkedin_url) { %>
-          <a href="<%= config.linkedin_url %>" target="_blank" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+        <% if (config.wechat_image_url) { %>
+          <a href="javascript:void(0)" class="social-link" id="wechatBtn" title="微信"><i class="fab fa-weixin"></i></a>
         <% } %>
-        <% if (config.email) { %>
-          <a href="mailto:<%= config.email %>" class="social-link"><i class="fas fa-envelope"></i></a>
+        <% if (config.bilibili_url) { %>
+          <a href="<%= config.bilibili_url %>" target="_blank" class="social-link" title="哔哩哔哩"><i class="fab fa-bilibili"></i></a>
         <% } %>
       </div>
     </div>
   </section>
 
+  <!-- WeChat Modal -->
+  <div class="modal" id="wechatModal">
+    <div class="modal-backdrop" onclick="closeWechatModal()"></div>
+    <div class="modal-content wechat-modal-content">
+      <button class="modal-close" onclick="closeWechatModal()"><i class="fas fa-times"></i></button>
+      <div class="wechat-modal-body">
+        <img src="<%= config.wechat_image_url %>" alt="微信二维码" class="wechat-qr-img"
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%23e2e8f0%22 width=%22200%22 height=%22200%22/><text x=%22100%22 y=%22105%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2216%22 font-family=%22sans-serif%22>暂无二维码</text></svg>'">
+        <p class="wechat-text"><%= config.wechat_text || '有兴趣加我V' %></p>
+      </div>
+    </div>
+  </div>
+
   <!-- Stats Section -->
   <section class="stats">
     <div class="container stats-grid">
-      <div class="stat-item" data-aos="fade-up" data-aos-delay="0">
-        <span class="stat-number" data-count="<%= projects.filter(p => p.category === 'ai').length %>">0</span>
-        <span class="stat-label">AI 项目</span>
+      <% categories.forEach(function(c, i) { %>
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="<%= i * 100 %>">
+        <span class="stat-number" data-count="<%= projects.filter(p => p.category === c).length %>">0</span>
+        <span class="stat-label"><%= categoryLabels[c] || c %></span>
       </div>
-      <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
-        <span class="stat-number" data-count="<%= projects.filter(p => p.category === 'unity').length %>">0</span>
-        <span class="stat-label">Unity 项目</span>
-      </div>
-      <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
-        <span class="stat-number" data-count="<%= projects.filter(p => p.category === 'comprehensive').length %>">0</span>
-        <span class="stat-label">综合项目</span>
-      </div>
-      <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
+      <% }) %>
+      <div class="stat-item" data-aos="fade-up" data-aos-delay="<%= categories.length * 100 %>">
         <span class="stat-number" data-count="<%= projects.length %>">0</span>
         <span class="stat-label">总项目</span>
       </div>
@@ -105,11 +112,9 @@
           <div class="featured-carousel" id="featuredCarousel">
           <% featuredProjects.forEach(function(project, index) { %>
             <div class="featured-card" onclick='openProjectModal(this.dataset.project)' data-project='<%- JSON.stringify(project).replace(/'/g, "&#39;") %>'>
-              <div class="featured-card-bg" style="background: linear-gradient(135deg,
-                <%= project.category === 'ai' ? '#3b82f6, #1d4ed8' : project.category === 'unity' ? '#8b5cf6, #6d28d9' : '#10b981, #047857' %>)">
-                <span class="featured-icon">
-                  <i class="fas <%= project.category === 'ai' ? 'fa-brain' : project.category === 'unity' ? 'fa-gamepad' : 'fa-cubes' %>"></i>
-                </span>
+              <div class="featured-card-image">
+                <img src="<%= project.cover_image || '/images/placeholder-' + project.category + '.jpg' %>" alt="<%= project.title %>"
+                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 250%22><rect fill=%22%23<%= project.category === 'ai' ? '3b82f6' : project.category === 'unity' ? '8b5cf6' : '10b981' %>22 width=%22400%22 height=%22250%22/><text x=%22200%22 y=%22125%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22 font-family=%22sans-serif%22><%= project.title %></text></svg>'">
               </div>
               <h4><%= project.title %></h4>
               <p><%= project.description.length > 80 ? project.description.substring(0, 80) + '...' : project.description %></p>
@@ -135,22 +140,22 @@
       <!-- Filter Tabs -->
       <div class="filter-tabs" data-aos="fade-up" data-aos-delay="100">
         <button class="filter-btn active" data-category="all">全部</button>
-        <button class="filter-btn" data-category="ai">AI 项目</button>
-        <button class="filter-btn" data-category="unity">Unity 项目</button>
-        <button class="filter-btn" data-category="comprehensive">综合项目</button>
+        <% categories && categories.forEach(function(c) { %>
+          <button class="filter-btn" data-category="<%= c %>"><%= categoryLabels[c] || c %></button>
+        <% }) %>
       </div>
 
       <!-- Projects Grid -->
       <div class="projects-grid" id="projectsGrid">
         <% var sortedProjects = projects.sort((a,b) => (a.sort_order||999) - (b.sort_order||999)); %>
         <% sortedProjects.forEach(function(project) { %>
-          <div class="project-card" data-category="<%= project.category %>" data-aos="fade-up" data-aos-delay="<%= (project.sort_order||1) * 50 %>">
+          <div class="project-card" data-category="<%= project.category %>">
             <div class="project-card-image">
               <img src="<%= project.cover_image || '/images/placeholder-' + project.category + '.jpg' %>" alt="<%= project.title %>"
                    onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 250%22><rect fill=%22%23<%= project.category === 'ai' ? '3b82f6' : project.category === 'unity' ? '8b5cf6' : '10b981' %>22 width=%22400%22 height=%22250%22/><text x=%22200%22 y=%22125%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22 font-family=%22sans-serif%22><%= project.title %></text></svg>'">
               <div class="project-card-overlay">
                 <span class="category-badge category-<%= project.category %>">
-                  <%= project.category === 'ai' ? 'AI' : project.category === 'unity' ? 'Unity' : '综合' %>
+                  <%= categoryLabels[project.category] || project.category %>
                 </span>
               </div>
             </div>
@@ -177,17 +182,20 @@
           </div>
         <% }) %>
       </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination"></div>
     </div>
   </section>
 
   <!-- Contact Section -->
   <section class="contact" id="contact">
     <div class="container">
-      <div class="section-header" data-aos="fade-up">
+      <div class="section-header">
         <h2 class="section-title">联系我</h2>
         <p class="section-desc">有任何问题或合作意向，欢迎联系</p>
       </div>
-      <div class="contact-content" data-aos="fade-up" data-aos-delay="100">
+      <div class="contact-content">
         <p class="contact-email">
           <i class="fas fa-envelope-open-text"></i>
           <a href="mailto:<%= config.email || '' %>"><%= config.email || '' %></a>
@@ -196,11 +204,11 @@
           <% if (config.github_url) { %>
             <a href="<%= config.github_url %>" target="_blank" class="social-link large"><i class="fab fa-github"></i></a>
           <% } %>
-          <% if (config.linkedin_url) { %>
-            <a href="<%= config.linkedin_url %>" target="_blank" class="social-link large"><i class="fab fa-linkedin-in"></i></a>
+          <% if (config.wechat_image_url) { %>
+            <a href="javascript:void(0)" class="social-link large wechat-contact-btn" title="微信"><i class="fab fa-weixin"></i></a>
           <% } %>
-          <% if (config.email) { %>
-            <a href="mailto:<%= config.email %>" class="social-link large"><i class="fas fa-envelope"></i></a>
+          <% if (config.bilibili_url) { %>
+            <a href="<%= config.bilibili_url %>" target="_blank" class="social-link large" title="哔哩哔哩"><i class="fab fa-bilibili"></i></a>
           <% } %>
         </div>
       </div>

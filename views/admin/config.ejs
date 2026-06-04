@@ -75,6 +75,26 @@
             <label>LinkedIn URL</label>
             <input type="url" name="linkedin_url" value="<%= config.linkedin_url || '' %>">
           </div>
+          <div class="form-group">
+            <label>微信二维码图片</label>
+            <% if (config.wechat_image_url) { %>
+              <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+                <img src="<%= config.wechat_image_url %>" alt="" style="width:80px;height:80px;border-radius:8px;object-fit:cover;background:#f1f5f9" onerror="this.style.display='none'">
+                <div>
+                  <div class="form-hint" style="margin-top:0">当前微信二维码</div>
+                </div>
+              </div>
+            <% } %>
+            <input type="file" name="wechat_image_file" accept="image/*">
+          </div>
+          <div class="form-group">
+            <label>微信提示文字（显示在二维码下方）</label>
+            <input type="text" name="wechat_text" value="<%= config.wechat_text || '有兴趣加我V' %>">
+          </div>
+          <div class="form-group">
+            <label>哔哩哔哩 URL</label>
+            <input type="url" name="bilibili_url" value="<%= config.bilibili_url || '' %>">
+          </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> 保存配置</button>
           </div>
@@ -84,9 +104,58 @@
   </div>
 
   <script>
-    setTimeout(() => {
-      document.querySelectorAll('.alert').forEach(el => el.style.opacity = '0');
-    }, 3000);
+    // Upload progress for config form
+    document.querySelector('.config-card form').addEventListener('submit', function(e) {
+      // Only show progress if files are being uploaded
+      var hasFile = false;
+      this.querySelectorAll('input[type=\"file\"]').forEach(function(el) { if (el.files.length > 0) hasFile = true; });
+      if (!hasFile) return;
+
+      e.preventDefault();
+      var formData = new FormData(this);
+      var xhr = new XMLHttpRequest();
+
+      var overlay = document.createElement('div');
+      overlay.className = 'upload-overlay';
+      overlay.innerHTML = '<div class=\"upload-modal\"><div class=\"upload-icon\" id=\"uploadIcon\"><i class=\"fas fa-cloud-upload-alt\"></i></div><div class=\"upload-progress-bar\"><div class=\"upload-progress-fill\" id=\"progressFill\"></div></div><div class=\"upload-progress-text\" id=\"progressText\">正在上传 0%</div></div>';
+      document.body.appendChild(overlay);
+
+      var progressFill = document.getElementById('progressFill');
+      var progressText = document.getElementById('progressText');
+      var uploadIcon = document.getElementById('uploadIcon');
+
+      xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+          var pct = Math.round((e.loaded / e.total) * 100);
+          progressFill.style.width = pct + '%';
+          progressText.textContent = '正在上传 ' + pct + '%';
+        }
+      });
+
+      xhr.addEventListener('load', function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          progressFill.style.width = '100%';
+          progressText.textContent = '上传完成';
+          uploadIcon.innerHTML = '<i class=\"fas fa-check-circle\" style=\"color:#22c55e\"></i>';
+          overlay.querySelector('.upload-modal').classList.add('success');
+          setTimeout(function() { overlay.remove(); window.location.href = xhr.responseURL; }, 800);
+        } else {
+          uploadIcon.innerHTML = '<i class=\"fas fa-times-circle\" style=\"color:#ef4444\"></i>';
+          progressText.textContent = '上传失败';
+          overlay.querySelector('.upload-modal').classList.add('error');
+          setTimeout(function() { overlay.remove(); }, 1500);
+        }
+      });
+
+      xhr.addEventListener('error', function() {
+        uploadIcon.innerHTML = '<i class=\"fas fa-times-circle\" style=\"color:#ef4444\"></i>';
+        progressText.textContent = '网络错误';
+        setTimeout(function() { overlay.remove(); }, 1500);
+      });
+
+      xhr.open('POST', '/admin/config', true);
+      xhr.send(formData);
+    });
   </script>
 </body>
 </html>
