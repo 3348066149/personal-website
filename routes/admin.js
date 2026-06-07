@@ -119,6 +119,7 @@ router.get('/projects', auth, (req, res) => {
   const config = {};
   configs.forEach(c => { config[c.config_key] = c.config_value; });
   var categories = readData('categories.xlsx') || [];
+  categories.sort(function(a, b) { return (a.sort_order || 999) - (b.sort_order || 999); });
   res.render('admin/projects', { projects, config, categories, message: req.query.message || '', currentCategory });
 });
 
@@ -135,13 +136,10 @@ router.post('/projects/add', auth, upload.fields([
     category: req.body.category || 'ai',
     tech_stack: req.body.tech_stack || '',
     cover_image: '/images/placeholder-' + (req.body.category || 'ai') + '.jpg',
-    demo_link: req.body.demo_link || '',
-    code_link: req.body.code_link || '',
     video_link: req.body.video_link || '',
-    source_type: req.body.source_type || 'url',
+    source_url: req.body.source_url || '',
     local_file_path: '',
     local_file_size: '',
-    source_url: req.body.source_url || '',
     completion_date: req.body.completion_date || '',
     sort_order: req.body.sort_order || projects.length + 1,
     is_featured: req.body.is_featured || 'no',
@@ -183,10 +181,7 @@ router.post('/projects/edit/:id', auth, upload.fields([
   projects[index].description = req.body.description || '';
   projects[index].category = req.body.category || 'ai';
   projects[index].tech_stack = req.body.tech_stack || '';
-  projects[index].demo_link = req.body.demo_link || '';
-  projects[index].code_link = req.body.code_link || '';
   projects[index].video_link = req.body.video_link || '';
-  projects[index].source_type = req.body.source_type || 'url';
   projects[index].source_url = req.body.source_url || '';
   projects[index].completion_date = req.body.completion_date || '';
   projects[index].sort_order = req.body.sort_order || projects[index].sort_order;
@@ -208,6 +203,28 @@ router.post('/projects/edit/:id', auth, upload.fields([
 
   writeData('projects.xlsx', projects);
   res.redirect('/admin/projects?message=项目修改成功');
+});
+
+/** 清除项目的本地文件 */
+router.post('/projects/clear-file/:id', auth, (req, res) => {
+  let projects = readData('projects.xlsx');
+  const project = projects.find(p => Number(p.id) === Number(req.params.id));
+  if (!project) return res.json({ success: false, message: '项目不存在' });
+
+  // 删除磁盘上的文件
+  if (project.local_file_path) {
+    const cleanPath = project.local_file_path.replace(/^\//, '');
+    const filePath = path.join(__dirname, '..', 'public', cleanPath);
+    if (fs.existsSync(filePath)) {
+      try { fs.unlinkSync(filePath); } catch(e) {}
+    }
+  }
+
+  // 清除文件信息
+  project.local_file_path = '';
+  project.local_file_size = '';
+  writeData('projects.xlsx', projects);
+  res.json({ success: true, message: '文件已清除' });
 });
 
 /** 删除项目 */
@@ -358,6 +375,7 @@ router.post('/upload/image', auth, upload.single('image'), (req, res) => {
 /** 获取所有分类（JSON） */
 router.get('/categories', auth, function(req, res) {
   var cats = readData('categories.xlsx') || [];
+  cats.sort(function(a, b) { return (a.sort_order || 999) - (b.sort_order || 999); });
   res.json({ success: true, data: cats });
 });
 
@@ -372,7 +390,7 @@ router.post('/categories/add', auth, function(req, res) {
     id: (cats.length > 0 ? Math.max.apply(null, cats.map(function(c) { return Number(c.id) || 0; })) + 1 : 1),
     name: name,
     label: label,
-    sort_order: cats.length + 1
+    sort_order: Number(req.body.sort_order) || 1
   });
   writeData('categories.xlsx', cats);
   // 同时创建对应的文件夹
@@ -390,6 +408,9 @@ router.post('/categories/edit', auth, function(req, res) {
   var newLabel = (req.body.label || req.body.name || '').trim();
   if (!newLabel) return res.json({ success: false, message: '类别名称不能为空' });
   cat.label = newLabel;
+  if (req.body.sort_order !== undefined) {
+    cat.sort_order = Number(req.body.sort_order) || cat.sort_order;
+  }
   if (newLabel !== oldName) {
     if (cats.find(function(c) { return c.name === newLabel; })) return res.json({ success: false, message: '分类名称已存在' });
     // 重命名文件夹
@@ -435,6 +456,24 @@ router.post('/categories/delete/:id', auth, function(req, res) {
   res.json({ success: true, data: cats });
 });
 
+/** 批量更新分类排序（拖拽后调用） */
+router.post('/categories/reorder', auth, function(req, res) {
+  var cats = readData('categories.xlsx') || [];
+  var orderedIds = req.body.ids; // 前端传来的排序后的 ID 数组
+  if (!orderedIds || !Array.isArray(orderedIds) || orderedIds.length === 0) {
+    return res.json({ success: false, message: '排序数据无效' });
+  }
+  // 转成数字数组（前端表单传过来的是字符串）
+  orderedIds = orderedIds.map(function(id) { return Number(id); });
+  // 按新顺序给每个分类分配 sort_order
+  cats.forEach(function(cat) {
+    var idx = orderedIds.indexOf(Number(cat.id));
+    if (idx !== -1) cat.sort_order = idx + 1;
+  });
+  writeData('categories.xlsx', cats);
+  res.json({ success: true, data: cats });
+});
+
 // ========== 旧文件缓存管理 ==========
 // OldTemp 是一个安全机制：编辑项目时，旧文件不会被立即删除，
 // 而是移动到 .oldtemp 目录，方便找回
@@ -455,7 +494,10 @@ router.post('/projects/move-to-oldtemp/:id', auth, function(req, res) {
   var oldTempDir = getOldTempDir(project);
   fs.mkdirSync(oldTempDir, { recursive: true });
 
-  if (project.cover_image) {
+  // 只移动前端正在替换的文件类型
+  var types = (req.body.types || '').split(',');
+
+  if (types.indexOf('cover_image_file') !== -1 && project.cover_image) {
     var coverPath = project.cover_image.replace(/^\//, '');
     var srcPath = path.join(__dirname, '..', 'public', coverPath);
     if (fs.existsSync(srcPath)) {
@@ -464,7 +506,7 @@ router.post('/projects/move-to-oldtemp/:id', auth, function(req, res) {
       catch (err) { fs.copyFileSync(srcPath, destPath); fs.unlinkSync(srcPath); }
     }
   }
-  if (project.local_file_path) {
+  if (types.indexOf('local_file') !== -1 && project.local_file_path) {
     var filePath = project.local_file_path.replace(/^\//, '');
     var srcPath = path.join(__dirname, '..', 'public', filePath);
     if (fs.existsSync(srcPath)) {

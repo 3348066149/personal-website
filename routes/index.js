@@ -92,21 +92,16 @@ router.get('/api/download/:id', (req, res) => {
   const project = projects.find(p => Number(p.id) === Number(req.params.id));
   if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
 
-  // 如果项目是本地文件类型，直接从服务器下载
-  if (project.source_type === 'local' || project.source_type === 'both') {
-    if (project.local_file_path) {
-      const cleanPath = project.local_file_path.replace(/^\//, '');
-      const filePath = path.join(__dirname, '..', 'public', cleanPath);
-      if (fs.existsSync(filePath)) {
-        return res.download(filePath);  // 触发浏览器下载
-      }
+  // 只有本地文件存在时才下载
+  if (project.local_file_path) {
+    const cleanPath = project.local_file_path.replace(/^\//, '');
+    const filePath = path.join(__dirname, '..', 'public', cleanPath);
+    if (fs.existsSync(filePath)) {
+      return res.download(filePath);
     }
   }
-  // 否则重定向到外部链接
-  if (project.source_url) {
-    return res.redirect(project.source_url);
-  }
-  res.status(404).json({ success: false, message: 'No source available' });
+  // 文件不存在则返回 404（不再跳转到外部链接，外部链接由前端"源码链接"按钮处理）
+  res.status(404).json({ success: false, message: 'File not found' });
 });
 
 // 导出路由，供 app.js 使用

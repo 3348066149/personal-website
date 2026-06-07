@@ -131,51 +131,35 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>源码类型</label>
-            <select name="source_type" id="addSourceType">
-              <option value="url">外部链接</option>
-              <option value="local">本地上传</option>
-              <option value="both">两者都提供</option>
-            </select>
+            <label>源码链接</label>
+            <input type="url" name="source_url" placeholder="https://github.com/...">
           </div>
+          <div class="form-group">
+            <label>本地文件上传</label>
+            <input type="file" name="local_file">
+          </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>封面图片</label>
             <input type="file" name="cover_image_file" accept="image/*">
           </div>
-        </div>
-        <div id="addUrlFields" class="form-group">
-          <label>源码链接</label>
-          <input type="url" name="source_url" placeholder="https://github.com/...">
-        </div>
-        <div id="addLocalFields" class="form-group" style="display:none">
-          <label>本地文件上传</label>
-          <input type="file" name="local_file">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>演示链接</label>
-            <input type="url" name="demo_link">
-          </div>
-          <div class="form-group">
-            <label>GitHub 链接</label>
-            <input type="url" name="code_link">
-          </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label>视频链接</label>
             <input type="url" name="video_link">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>完成日期</label>
             <input type="date" name="completion_date">
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label>排序序号</label>
             <input type="number" name="sort_order" value="<%= projects.length + 1 %>">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label><input type="checkbox" name="is_featured" value="yes"> 精选项目</label>
           </div>
@@ -221,51 +205,42 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>源码类型</label>
-            <select name="source_type" id="editSourceType">
-              <option value="url">外部链接</option>
-              <option value="local">本地上传</option>
-              <option value="both">两者都提供</option>
-            </select>
+            <label>源码链接</label>
+            <input type="url" name="source_url" id="editSourceUrl" placeholder="https://github.com/...">
           </div>
+          <div class="form-group">
+            <label>本地文件上传（留空不修改）</label>
+            <input type="file" name="local_file" id="editLocalFile">
+            <div id="editLocalFileName" style="margin-top:6px;font-size:0.85rem;color:#64748b;display:none">
+              <i class="fas fa-paperclip"></i> 当前文件：<span id="editLocalFileNameText"></span>
+              （<span id="editLocalFileSizeText"></span>）
+              <button type="button" class="btn-sm btn-delete" id="clearLocalFileBtn" onclick="clearLocalFile()" title="清除文件" style="margin-left:8px">
+                <i class="fas fa-times-circle"></i> 清除文件
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>封面图片（留空不修改）</label>
             <input type="file" name="cover_image_file" accept="image/*">
           </div>
-        </div>
-        <div id="editUrlFields" class="form-group">
-          <label>源码链接</label>
-          <input type="url" name="source_url" id="editSourceUrl">
-        </div>
-        <div id="editLocalFields" class="form-group" style="display:none">
-          <label>本地文件上传（留空不修改）</label>
-          <input type="file" name="local_file">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>演示链接</label>
-            <input type="url" name="demo_link" id="editDemoLink">
-          </div>
-          <div class="form-group">
-            <label>GitHub 链接</label>
-            <input type="url" name="code_link" id="editCodeLink">
-          </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label>视频链接</label>
             <input type="url" name="video_link" id="editVideoLink">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>完成日期</label>
             <input type="date" name="completion_date" id="editDate">
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label>排序序号</label>
             <input type="number" name="sort_order" id="editSortOrder">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label><input type="checkbox" name="is_featured" value="yes" id="editFeatured"> 精选项目</label>
           </div>
@@ -311,8 +286,9 @@
       </div>
       <div class="modal-body" id="categoryModalBody">
         <div id="categoryList"></div>
-        <div class="form-actions" style="border-top-color:#e2e8f0;margin-top:16px;padding-top:16px">
+        <div class="form-actions" style="border-top-color:#e2e8f0;margin-top:16px;padding-top:16px;display:flex;gap:8px">
           <button class="btn btn-primary" onclick="addCategory()"><i class="fas fa-plus"></i> 新增类别</button>
+          <button class="btn btn-success" id="confirmOrderBtn" onclick="saveOrder()" style="display:none"><i class="fas fa-check"></i> 确认排序</button>
         </div>
       </div>
     </div>
@@ -334,20 +310,6 @@
           alert('网络错误');
         });
     }
-
-    // Source type toggle for Add
-    document.getElementById('addSourceType').addEventListener('change', function() {
-      const val = this.value;
-      document.getElementById('addUrlFields').style.display = (val === 'url' || val === 'both') ? 'block' : 'none';
-      document.getElementById('addLocalFields').style.display = (val === 'local' || val === 'both') ? 'block' : 'none';
-    });
-
-    // Source type toggle for Edit
-    document.getElementById('editSourceType').addEventListener('change', function() {
-      const val = this.value;
-      document.getElementById('editUrlFields').style.display = (val === 'url' || val === 'both') ? 'block' : 'none';
-      document.getElementById('editLocalFields').style.display = (val === 'local' || val === 'both') ? 'block' : 'none';
-    });
 
     // ===== Upload Progress =====
     function submitWithProgress(form, submitBtn) {
@@ -418,6 +380,12 @@
       });
 
       if (hasFiles) {
+        // 收集正在上传的文件类型
+        var fileTypes = [];
+        this.querySelectorAll('input[type=\"file\"]').forEach(function(el) {
+          if (el.files.length > 0) fileTypes.push(el.name);
+        });
+
         // Show warning dialog
         var overlay = document.createElement('div');
         overlay.className = 'upload-overlay';
@@ -426,14 +394,15 @@
 
         document.getElementById('confirmOldTempBtn').addEventListener('click', function() {
           overlay.remove();
-          // Send old files to OldTemp first
+          // 只移动正在替换的文件类型对应的旧文件
+          var body = 'types=' + fileTypes.join(',');
           var xhr = new XMLHttpRequest();
           xhr.open('POST', '/admin/projects/move-to-oldtemp/' + currentEditId, true);
           xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
           xhr.onload = function() {
             submitWithProgress(document.querySelector('#editModal form'));
           };
-          xhr.send();
+          xhr.send(body);
         });
         document.getElementById('cancelOldTempBtn').addEventListener('click', function() {
           overlay.remove();
@@ -450,18 +419,24 @@
       document.getElementById('editCategory').value = project.category || 'ai';
       document.getElementById('editDescription').value = project.description || '';
       document.getElementById('editTechStack').value = project.tech_stack || '';
-      document.getElementById('editSourceType').value = project.source_type || 'url';
       document.getElementById('editSourceUrl').value = project.source_url || '';
-      document.getElementById('editDemoLink').value = project.demo_link || '';
-      document.getElementById('editCodeLink').value = project.code_link || '';
       document.getElementById('editVideoLink').value = project.video_link || '';
       document.getElementById('editDate').value = project.completion_date || '';
       document.getElementById('editSortOrder').value = project.sort_order || 0;
       document.getElementById('editFeatured').checked = project.is_featured === 'yes';
 
-      const st = project.source_type || 'url';
-      document.getElementById('editUrlFields').style.display = (st === 'url' || st === 'both') ? 'block' : 'none';
-      document.getElementById('editLocalFields').style.display = (st === 'local' || st === 'both') ? 'block' : 'none';
+      // Show current local file name if exists
+      var fileNameDiv = document.getElementById('editLocalFileName');
+      var fileNameText = document.getElementById('editLocalFileNameText');
+      var fileSizeText = document.getElementById('editLocalFileSizeText');
+      if (project.local_file_path) {
+        var fileName = project.local_file_path.split('/').pop();
+        fileNameText.textContent = fileName;
+        fileSizeText.textContent = project.local_file_size || '未知大小';
+        fileNameDiv.style.display = 'block';
+      } else {
+        fileNameDiv.style.display = 'none';
+      }
 
       // Check if OldTemp exists
       var cacheBtn = document.getElementById('clearCacheBtn');
@@ -477,6 +452,32 @@
     }
 
     // ===== Clear Cache functions =====
+    function clearLocalFile() {
+      if (!currentEditId) return;
+      if (!confirm('确定清除本地文件吗？此操作会永久删除服务器上的文件。')) return;
+      fetch('/admin/projects/clear-file/' + currentEditId, { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) {
+            // 隐藏文件信息区域
+            var fileNameDiv = document.getElementById('editLocalFileName');
+            if (fileNameDiv) fileNameDiv.style.display = 'none';
+            // 清除文件输入框
+            var fileInput = document.getElementById('editLocalFile');
+            if (fileInput) fileInput.value = '';
+            // 显示成功提示
+            var alert = document.createElement('div');
+            alert.className = 'alert alert-success';
+            alert.innerHTML = '<i class="fas fa-check-circle"></i> ' + (d.message || '文件已清除');
+            document.querySelector('.admin-main .admin-header').after(alert);
+            setTimeout(function() { alert.style.opacity = '0'; alert.remove(); }, 3000);
+          } else {
+            alert(d.message || '清除失败');
+          }
+        })
+        .catch(function() { alert('网络错误'); });
+    }
+
     function showClearCacheDialog() {
       var id = document.getElementById('clearCacheBtn').dataset.id;
       fetch('/admin/projects/oldtemp-files/' + id)
@@ -528,6 +529,9 @@
       document.getElementById('categoryModal').classList.remove('active');
     }
 
+    var draggedCategoryEl = null;
+    var categoryOrderChanged = false;  // 标记是否有未保存的排序变动
+
     function loadCategories() {
       fetch('/admin/categories')
         .then(function(r) { return r.json(); })
@@ -535,18 +539,195 @@
           if (!d.success) return;
           var html = '';
           d.data.forEach(function(cat) {
-            html += '<div class="category-item" data-id="' + cat.id + '" data-name="' + cat.name + '">';
+            html += '<div class="category-item" data-id="' + cat.id + '" data-name="' + cat.name + '" draggable="true">';
+            html += '  <span class="category-drag-handle" title="长按拖动排序"><i class="fas fa-grip-vertical"></i></span>';
+            html += '  <span class="category-sort-badge">' + (cat.sort_order || 0) + '</span>';
             html += '  <div class="category-info">';
             html += '    <span class="category-label">' + escHtml(cat.label) + '</span>';
             html += '  </div>';
             html += '  <div class="category-actions">';
-            html += '    <button class="btn-sm btn-edit" onclick="editCategory(' + cat.id + ')"><i class="fas fa-edit"></i></button>';
-            html += '    <button class="btn-sm btn-delete" onclick="deleteCategory(' + cat.id + ')"><i class="fas fa-trash"></i></button>';
+            html += '    <button class="btn-sm btn-edit" onclick="editCategoryName(' + cat.id + ')" title="重命名"><i class="fas fa-edit"></i></button>';
+            html += '    <button class="btn-sm btn-delete" onclick="deleteCategory(' + cat.id + ')" title="删除"><i class="fas fa-trash"></i></button>';
             html += '  </div>';
             html += '</div>';
           });
-          document.getElementById('categoryList').innerHTML = html;
+          document.getElementById('categoryList').innerHTML = html || '<p style="text-align:center;color:#94a3b8;padding:20px">暂无分类</p>';
+          bindDragEvents();
         });
+    }
+
+    function bindDragEvents() {
+      var items = document.querySelectorAll('#categoryList .category-item');
+      items.forEach(function(item) {
+        item.addEventListener('dragstart', function(e) {
+          draggedCategoryEl = this;
+          this.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', this.dataset.id);
+        });
+
+        item.addEventListener('dragend', function(e) {
+          this.classList.remove('dragging');
+          draggedCategoryEl = null;
+          document.querySelectorAll('#categoryList .category-item').forEach(function(el) {
+            el.classList.remove('drag-over');
+          });
+        });
+
+        item.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (this !== draggedCategoryEl) {
+            document.querySelectorAll('#categoryList .category-item').forEach(function(el) {
+              el.classList.remove('drag-over');
+            });
+            this.classList.add('drag-over');
+          }
+        });
+
+        item.addEventListener('dragleave', function(e) {
+          this.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.classList.remove('drag-over');
+          if (draggedCategoryEl && draggedCategoryEl !== this) {
+            var list = document.getElementById('categoryList');
+            var items = list.querySelectorAll('.category-item');
+            var draggedIdx = -1, targetIdx = -1;
+            items.forEach(function(el, i) {
+              if (el === draggedCategoryEl) draggedIdx = i;
+              if (el === this) targetIdx = i;
+            }.bind(this));
+            if (targetIdx < draggedIdx) {
+              this.parentNode.insertBefore(draggedCategoryEl, this);
+            } else {
+              this.parentNode.insertBefore(draggedCategoryEl, this.nextSibling);
+            }
+            updateLocalOrder();
+          }
+        });
+
+        // 触屏长按：使用 touch 事件模拟拖拽
+        var longPressTimer = null;
+        var touchStartX = 0, touchStartY = 0;
+        var isDraggingTouch = false;
+        var cloneEl = null;
+        var touchTarget = null;
+
+        item.addEventListener('touchstart', function(e) {
+          if (e.touches.length !== 1) return;
+          touchTarget = this;
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          longPressTimer = setTimeout(function() {
+            // 长按触发：创建拖拽克隆
+            isDraggingTouch = true;
+            var rect = touchTarget.getBoundingClientRect();
+            cloneEl = touchTarget.cloneNode(true);
+            cloneEl.style.position = 'fixed';
+            cloneEl.style.left = rect.left + 'px';
+            cloneEl.style.top = rect.top + 'px';
+            cloneEl.style.width = rect.width + 'px';
+            cloneEl.style.zIndex = '9999';
+            cloneEl.style.opacity = '0.85';
+            cloneEl.style.pointerEvents = 'none';
+            cloneEl.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            cloneEl.classList.add('dragging');
+            document.body.appendChild(cloneEl);
+            touchTarget.classList.add('drag-placeholder');
+            touchTarget.style.opacity = '0.35';
+          }, 500);
+        }, { passive: false });
+
+        item.addEventListener('touchmove', function(e) {
+          if (!isDraggingTouch || !cloneEl) return;
+          e.preventDefault();
+          var x = e.touches[0].clientX;
+          var y = e.touches[0].clientY;
+          cloneEl.style.left = (x - cloneEl.offsetWidth / 2) + 'px';
+          cloneEl.style.top = (y - 20) + 'px';
+          // 判断覆盖在哪个元素上
+          var el = document.elementFromPoint(x, y);
+          document.querySelectorAll('#categoryList .category-item').forEach(function(el) {
+            el.classList.remove('drag-over');
+          });
+          var catItem = el ? el.closest('.category-item') : null;
+          if (catItem && catItem !== touchTarget) {
+            catItem.classList.add('drag-over');
+          }
+        }, { passive: false });
+
+        item.addEventListener('touchend', function(e) {
+          clearTimeout(longPressTimer);
+          if (!isDraggingTouch) return;
+          e.preventDefault();
+          var x = e.changedTouches[0].clientX;
+          var y = e.changedTouches[0].clientY;
+          // 移除克隆
+          if (cloneEl) { cloneEl.remove(); cloneEl = null; }
+          touchTarget.classList.remove('drag-placeholder');
+          touchTarget.style.opacity = '';
+          document.querySelectorAll('#categoryList .category-item').forEach(function(el) {
+            el.classList.remove('drag-over');
+          });
+          // 找到目标位置
+          var el = document.elementFromPoint(x, y);
+          var catItem = el ? el.closest('.category-item') : null;
+          if (catItem && catItem !== touchTarget) {
+            var targetIdx = -1, draggedIdx = -1;
+            var items = document.querySelectorAll('#categoryList .category-item');
+            items.forEach(function(item, i) {
+              if (item === catItem) targetIdx = i;
+              if (item === touchTarget) draggedIdx = i;
+            });
+            if (targetIdx < draggedIdx) {
+              catItem.parentNode.insertBefore(touchTarget, catItem);
+            } else {
+              catItem.parentNode.insertBefore(touchTarget, catItem.nextSibling);
+            }
+            updateLocalOrder();
+          }
+          isDraggingTouch = false;
+          touchTarget = null;
+        });
+      });
+    }
+
+    function updateLocalOrder() {
+      categoryOrderChanged = true;
+      // 更新显示的序号
+      document.querySelectorAll('#categoryList .category-item').forEach(function(el, i) {
+        var badge = el.querySelector('.category-sort-badge');
+        if (badge) badge.textContent = i + 1;
+      });
+      // 显示确认按钮
+      var btn = document.getElementById('confirmOrderBtn');
+      if (btn) btn.style.display = 'inline-flex';
+    }
+
+    function saveOrder() {
+      var ids = [];
+      document.querySelectorAll('#categoryList .category-item').forEach(function(el) {
+        ids.push(Number(el.dataset.id));
+      });
+      var body = ids.map(function(id) { return 'ids[]=' + id; }).join('&');
+      fetch('/admin/categories/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.success) {
+          categoryOrderChanged = false;
+          var btn = document.getElementById('confirmOrderBtn');
+          if (btn) btn.style.display = 'none';
+          location.reload();  // 刷新页面让分类标签也更新
+        } else {
+          alert('排序保存失败');
+        }
+      });
     }
 
     function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }
@@ -557,14 +738,14 @@
       fetch('/admin/categories/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'name=' + encodeURIComponent(name.trim()) + '&label=' + encodeURIComponent(name.trim())
+        body: 'name=' + encodeURIComponent(name.trim()) + '&label=' + encodeURIComponent(name.trim()) + '&sort_order=1'
       }).then(function(r) { return r.json(); }).then(function(d) {
         if (d.success) { loadCategories(); location.reload(); }
         else { alert(d.message || '添加失败'); }
       });
     }
 
-    function editCategory(id) {
+    function editCategoryName(id) {
       var item = document.querySelector('.category-item[data-id="' + id + '"]');
       if (!item) return;
       var oldLabel = item.querySelector('.category-label').textContent;

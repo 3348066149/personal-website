@@ -252,6 +252,8 @@ body {
 
 .btn-primary { background: #3b82f6; color: white; }
 .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+.btn-success { background: #22c55e; color: white; }
+.btn-success:hover { background: #16a34a; transform: translateY(-1px); }
 .btn-outline { background: transparent; color: #3b82f6; border: 2px solid #3b82f6; }
 .btn-outline:hover { background: rgba(59,130,246,0.08); }
 
@@ -646,17 +648,65 @@ body {
 .category-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   padding: 14px 16px;
   background: #f8fafc;
   border-radius: 12px;
   margin-bottom: 8px;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
+  cursor: default;
+  user-select: none;
 }
 
 .category-item:hover { background: #f1f5f9; }
 
-.category-info { display: flex; align-items: center; gap: 10px; }
+.category-item.dragging {
+  opacity: 0.4;
+  background: #e2e8f0;
+}
+
+.category-item.drag-over {
+  background: #dbeafe;
+  box-shadow: 0 0 0 2px #3b82f6;
+  transform: scale(1.02);
+}
+
+.category-item.drag-placeholder {
+  opacity: 0.35;
+  background: #e2e8f0;
+}
+
+.category-drag-handle {
+  cursor: grab;
+  color: #94a3b8;
+  font-size: 1rem;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.category-drag-handle:active { cursor: grabbing; }
+
+.category-item:hover .category-drag-handle {
+  color: #64748b;
+}
+
+.category-sort-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 0 8px;
+}
+
+.category-info { display: flex; align-items: center; gap: 10px; flex: 1; }
 
 .category-label {
   font-weight: 600;

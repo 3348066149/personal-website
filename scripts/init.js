@@ -41,8 +41,6 @@ ensureFile('projects.xlsx', [
   'category',         // 所属分类
   'tech_stack',       // 技术栈
   'cover_image',      // 封面图片路径
-  'demo_link',        // 演示链接
-  'code_link',        // 源码链接
   'video_link',       // 视频链接
   'source_type',      // 源码类型（url/local/both）
   'local_file_path',  // 本地文件路径
@@ -102,21 +100,21 @@ if (projects.length === 0) {
     {
       id: 1, title: 'AI Chat Assistant', description: 'An intelligent chatbot...',
       category: '默认类别', tech_stack: 'Python, PyTorch, Transformers, FastAPI',
-      cover_image: '/images/placeholder-ai.jpg', demo_link: '', code_link: 'https://github.com',
+      cover_image: '/images/placeholder-ai.jpg',
       video_link: '', source_type: 'url', local_file_path: '', local_file_size: '',
       source_url: 'https://github.com', completion_date: '2025-12-01', sort_order: 1, is_featured: 'yes'
     },
     {
       id: 2, title: '3D RPG Adventure', description: 'An immersive 3D role-playing game...',
       category: '默认类别', tech_stack: 'Unity, C#, Blender, Shader Graph',
-      cover_image: '/images/placeholder-unity.jpg', demo_link: '', code_link: 'https://github.com',
+      cover_image: '/images/placeholder-unity.jpg',
       video_link: '', source_type: 'url', local_file_path: '', local_file_size: '',
       source_url: 'https://github.com', completion_date: '2025-08-20', sort_order: 2, is_featured: 'yes'
     },
     {
       id: 3, title: 'AI-Powered Game NPCs', description: 'Implementing intelligent NPC behavior...',
       category: '默认类别', tech_stack: 'Unity, Python, ML-Agents, GPT API',
-      cover_image: '/images/placeholder-comprehensive.jpg', demo_link: '', code_link: 'https://github.com',
+      cover_image: '/images/placeholder-comprehensive.jpg',
       video_link: '', source_type: 'url', local_file_path: '', local_file_size: '',
       source_url: 'https://github.com', completion_date: '2025-04-05', sort_order: 3, is_featured: 'yes'
     },

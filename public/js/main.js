@@ -316,33 +316,22 @@ document.addEventListener('DOMContentLoaded', function() {
    * 如果项目没有某个链接，对应的按钮就隐藏
    */
   updateModalLinks = function(project) {
-    const demoLink = document.getElementById('modalDemoLink');
-    const codeLink = document.getElementById('modalCodeLink');
+    const sourceLink = document.getElementById('modalSourceLink');
     const downloadLink = document.getElementById('modalDownloadLink');
     const videoLink = document.getElementById('modalVideoLink');
 
-    if (project.demo_link) {
-      demoLink.style.display = 'inline-flex';
-      demoLink.href = project.demo_link;
+    // 源码链接按钮：有 source_url 就显示
+    if (project.source_url) {
+      sourceLink.style.display = 'inline-flex';
+      sourceLink.href = project.source_url;
     } else {
-      demoLink.style.display = 'none';
+      sourceLink.style.display = 'none';
     }
 
-    if (project.code_link) {
-      codeLink.style.display = 'inline-flex';
-      codeLink.href = project.code_link;
-    } else {
-      codeLink.style.display = 'none';
-    }
-
-    // 下载按钮：支持本地下载和外部链接两种方式
-    if (project.source_type === 'local' || project.source_type === 'both') {
+    // 下载按钮：有本地文件就显示
+    if (project.local_file_path) {
       downloadLink.style.display = 'inline-flex';
       downloadLink.href = '/api/download/' + project.id;
-    } else if (project.source_url) {
-      downloadLink.style.display = 'inline-flex';
-      downloadLink.href = project.source_url;
-      downloadLink.innerHTML = '<i class="fas fa-external-link-alt"></i> 下载';
     } else {
       downloadLink.style.display = 'none';
     }
